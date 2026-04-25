@@ -9,7 +9,8 @@ import webhookRoutes from './routes/webhook';
 
 const app = express();
 
-app.set('trust proxy', true);
+// Railway runs behind a single reverse proxy hop in production.
+app.set('trust proxy', env.NODE_ENV === 'production' ? 1 : false);
 app.use(helmet());
 app.use(cors({ origin: env.BOLDMENS_WEBSITE }));
 

@@ -1,23 +1,16 @@
-import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
 import { haircuts } from '../data/haircuts';
 import { products } from '../data/products';
-import { buildRecommendationSystemPrompt } from '../prompts/recommendationPrompt';
-import { HairAnalysis, Haircut, Language, Product, Recommendations } from '../types';
-import { logger } from '../utils/logger';
-
-const recommendationResponseSchema = z.object({
-  selectedHaircutIds: z.array(z.string()).length(3),
-  selectedProductIds: z.array(z.string()).min(3).max(5),
-  routine: z.array(z.string()).length(5),
-  summary: z.string().min(1),
-});
+import { HairAnalysis, Haircut, Language, Product, QuizProfileDraft, Recommendations } from '../types';
 
 function isStyler(product: Product): boolean {
   return ['styling_cream', 'pomade', 'wax', 'gel'].includes(product.category);
 }
 
-function scoreHaircut(haircut: Haircut, analysis: HairAnalysis): number {
+function scoreHaircut(
+  haircut: Haircut,
+  analysis: HairAnalysis,
+  preferredMaintenance?: Haircut['maintenanceLevel'],
+): number {
   let score = haircut.popularityScore;
 
   if (haircut.suitableFaceShapes.includes(analysis.faceShape)) {
@@ -30,6 +23,14 @@ function scoreHaircut(haircut: Haircut, analysis: HairAnalysis): number {
 
   if (haircut.boldMensSpecialty) {
     score += 8;
+  }
+
+  if (haircut.lengthCategory === analysis.currentLength || (analysis.currentLength === 'buzz' && haircut.lengthCategory === 'short')) {
+    score += 6;
+  }
+
+  if (preferredMaintenance && haircut.maintenanceLevel === preferredMaintenance) {
+    score += 12;
   }
 
   if (haircut.avoidForHairTypes.includes(analysis.hairType.typeCode)) {
@@ -62,7 +63,10 @@ function scoreProduct(product: Product, analysis: HairAnalysis): number {
     score += 6;
   }
 
-  if (analysis.hairType.typeCode >= '3A' && ['leave_in', 'oil', 'styling_cream', 'conditioner'].includes(product.category)) {
+  if (
+    analysis.hairType.typeCode >= '3A' &&
+    ['leave_in', 'oil', 'styling_cream', 'conditioner'].includes(product.category)
+  ) {
     score += 12;
   }
 
@@ -73,51 +77,79 @@ function scoreProduct(product: Product, analysis: HairAnalysis): number {
   return score;
 }
 
-function buildFallbackRoutine(analysis: HairAnalysis, language: Language): string[] {
+function buildRoutine(
+  analysis: HairAnalysis,
+  language: Language,
+  preferredMaintenance?: Haircut['maintenanceLevel'],
+): string[] {
+  const maintenanceHint =
+    preferredMaintenance === 'low'
+      ? language === 'en'
+        ? 'Keep the routine short and repeatable.'
+        : 'Mantem a rotina curta e facil de repetir.'
+      : preferredMaintenance === 'high'
+        ? language === 'en'
+          ? 'Spend a little extra time on definition and finish.'
+          : 'Dedica um pouco mais de tempo a definicao e acabamento.'
+        : language === 'en'
+          ? 'Balance maintenance with a polished finish.'
+          : 'Equilibra manutencao com um acabamento cuidado.';
+
   if (language === 'en') {
     return [
-      'Wash with the recommended shampoo based on your scalp condition.',
+      'Wash with the suggested shampoo according to your scalp and texture.',
       'Apply conditioner or leave-in through the mid-lengths and ends.',
-      'Use a styling product that matches your texture for control and shape.',
+      'Use the recommended styling product to shape the cut and control volume.',
       analysis.facialFeatures.beard
         ? 'Hydrate the beard with oil or balm and brush it into place.'
         : 'Finish with a light serum or oil if the hair feels dry.',
-      'Book a visit at Bold Men\'s for a sharper custom finish and maintenance plan.',
+      `${maintenanceHint} Book a visit at Bold Men\'s for a sharper finish.`,
     ];
   }
 
   return [
-    'Lava com o shampoo recomendado de acordo com o teu couro cabeludo.',
+    'Lava com o shampoo sugerido de acordo com o teu couro cabeludo e textura.',
     'Aplica condicionador ou leave-in no comprimento e nas pontas.',
-    'Usa um produto de styling adequado a tua textura para controlo e forma.',
+    'Usa o produto de styling recomendado para dar forma ao corte e controlar o volume.',
     analysis.facialFeatures.beard
       ? 'Hidrata a barba com oleo ou balm e penteia para alinhar.'
       : 'Finaliza com serum ou oleo leve se o cabelo estiver seco.',
-    'Marca visita na Bold Men\'s para um acabamento mais preciso e plano de manutencao.',
+    `${maintenanceHint} Marca visita na Bold Men\'s para um acabamento mais preciso.`,
   ];
 }
 
-async function getAnthropicClient(): Promise<Anthropic> {
-  const { env } = await import('../config/env');
-  return new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-}
+function buildSummary(
+  analysis: HairAnalysis,
+  language: Language,
+  preferredMaintenance?: Haircut['maintenanceLevel'],
+): string {
+  const maintenance =
+    preferredMaintenance === 'low'
+      ? language === 'en'
+        ? 'with low daily effort'
+        : 'com baixa manutencao diaria'
+      : preferredMaintenance === 'high'
+        ? language === 'en'
+          ? 'with a more styled finish'
+          : 'com um acabamento mais trabalhado'
+        : language === 'en'
+          ? 'with balanced upkeep'
+          : 'com manutencao equilibrada';
 
-function extractText(content: unknown): string {
-  if (!Array.isArray(content)) {
-    return '';
+  if (language === 'en') {
+    return `I matched these cuts to your ${analysis.faceShape} face shape, ${analysis.hairType.texture} texture, and current ${analysis.currentLength} length ${maintenance}.`;
   }
 
-  return content
-    .filter((item): item is { type: string; text?: string } => typeof item === 'object' && item !== null && 'type' in item)
-    .filter((item) => item.type === 'text' && typeof item.text === 'string')
-    .map((item) => item.text)
-    .join('\n');
+  return `Escolhi estes cortes para combinar com o teu rosto ${analysis.faceShape}, textura ${analysis.hairType.texture}, e comprimento ${analysis.currentLength} ${maintenance}.`;
 }
 
-export function filterCompatibleHaircuts(analysis: HairAnalysis): Haircut[] {
+export function filterCompatibleHaircuts(
+  analysis: HairAnalysis,
+  preferredMaintenance?: Haircut['maintenanceLevel'],
+): Haircut[] {
   return [...haircuts]
     .filter((haircut) => !haircut.avoidForHairTypes.includes(analysis.hairType.typeCode))
-    .sort((a, b) => scoreHaircut(b, analysis) - scoreHaircut(a, analysis));
+    .sort((a, b) => scoreHaircut(b, analysis, preferredMaintenance) - scoreHaircut(a, analysis, preferredMaintenance));
 }
 
 export function filterCompatibleProducts(analysis: HairAnalysis): Product[] {
@@ -145,8 +177,13 @@ export function filterCompatibleProducts(analysis: HairAnalysis): Product[] {
   return selected;
 }
 
-function buildFallbackRecommendations(analysis: HairAnalysis, language: Language): Recommendations {
-  const compatibleHaircuts = filterCompatibleHaircuts(analysis).slice(0, 3);
+export async function generateRecommendations(
+  analysis: HairAnalysis,
+  language: Language,
+  quizProfile?: QuizProfileDraft,
+): Promise<Recommendations> {
+  const preferredMaintenance = quizProfile?.preferredMaintenance;
+  const compatibleHaircuts = filterCompatibleHaircuts(analysis, preferredMaintenance).slice(0, 3);
   const compatibleProducts = filterCompatibleProducts(analysis);
 
   const shampoo = compatibleProducts.find((product) => product.category === 'shampoo');
@@ -159,10 +196,7 @@ function buildFallbackRecommendations(analysis: HairAnalysis, language: Language
     .filter((product): product is Product => Boolean(product))
     .concat(
       compatibleProducts.filter(
-        (product) =>
-          product !== shampoo &&
-          product !== styler &&
-          product !== beard,
+        (product) => product !== shampoo && product !== styler && product !== beard,
       ),
     )
     .slice(0, analysis.facialFeatures.beard ? 5 : 4);
@@ -170,72 +204,7 @@ function buildFallbackRecommendations(analysis: HairAnalysis, language: Language
   return {
     haircuts: compatibleHaircuts,
     products: selectedProducts,
-    routine: buildFallbackRoutine(analysis, language),
-    summary:
-      language === 'en'
-        ? 'These recommendations balance your face shape, hair texture, and maintenance needs for a polished Bold Men\'s result.'
-        : 'Estas recomendacoes equilibram o formato do rosto, a textura do cabelo e a manutencao para um resultado polido Bold Men\'s.',
+    routine: buildRoutine(analysis, language, preferredMaintenance),
+    summary: buildSummary(analysis, language, preferredMaintenance),
   };
-}
-
-export async function generateRecommendations(
-  analysis: HairAnalysis,
-  language: Language,
-): Promise<Recommendations> {
-  const compatibleHaircuts = filterCompatibleHaircuts(analysis).slice(0, 10);
-  const compatibleProducts = filterCompatibleProducts(analysis).slice(0, 14);
-
-  try {
-    const client = await getAnthropicClient();
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1200,
-      system: buildRecommendationSystemPrompt(language),
-      messages: [
-        {
-          role: 'user',
-          content: JSON.stringify(
-            {
-              analysis,
-              availableHaircuts: compatibleHaircuts,
-              availableProducts: compatibleProducts,
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    });
-
-    const rawText = extractText(response.content);
-    const parsed = recommendationResponseSchema.parse(JSON.parse(rawText));
-
-    const selectedHaircuts = parsed.selectedHaircutIds
-      .map((id) => compatibleHaircuts.find((haircut) => haircut.id === id))
-      .filter((haircut): haircut is Haircut => Boolean(haircut))
-      .slice(0, 3);
-
-    const selectedProducts = parsed.selectedProductIds
-      .map((id) => compatibleProducts.find((product) => product.id === id))
-      .filter((product): product is Product => Boolean(product));
-
-    const hasShampoo = selectedProducts.some((product) => product.category === 'shampoo');
-    const hasStyler = selectedProducts.some((product) => isStyler(product));
-
-    if (selectedHaircuts.length !== 3 || !hasShampoo || !hasStyler) {
-      throw new Error('Model returned incomplete recommendations');
-    }
-
-    return {
-      haircuts: selectedHaircuts,
-      products: selectedProducts,
-      routine: parsed.routine,
-      summary: parsed.summary,
-    };
-  } catch (error) {
-    logger.warn('Falling back to deterministic recommendations', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-    return buildFallbackRecommendations(analysis, language);
-  }
 }

@@ -2,7 +2,7 @@
 
 > Repositório base: `spwebfamily-crypto/boldmens-salon`
 > Website: https://boldmens.co
-> Stack: Node.js 20 + TypeScript + Express + Anthropic Vision + Twilio + MongoDB
+> Stack: Node.js 20 + TypeScript + Express + OpenAI Vision + Twilio + MongoDB
 
 ---
 
@@ -54,7 +54,7 @@ Configurar `tsconfig.json`:
 
 ```bash
 # Produção
-npm install express @anthropic-ai/sdk twilio mongoose zod dotenv cors helmet
+npm install express openai twilio mongoose zod dotenv cors helmet
 npm install express-rate-limit multer axios cloudinary winston
 
 # Desenvolvimento
@@ -123,8 +123,8 @@ boldmens-whatsapp-ai/
 ### Tarefa 2.1 — Criar `.env.example`
 
 ```bash
-# ─── Anthropic ───────────────────────────────────────────
-ANTHROPIC_API_KEY=sk-ant-api03-...
+# ─── OpenAI ──────────────────────────────────────────────
+OPENAI_API_KEY=sk-...
 
 # ─── Twilio ──────────────────────────────────────────────
 TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -163,7 +163,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const envSchema = z.object({
-  ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY is required'),
+  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
   TWILIO_ACCOUNT_SID: z.string().min(1, 'TWILIO_ACCOUNT_SID is required'),
   TWILIO_AUTH_TOKEN: z.string().min(1, 'TWILIO_AUTH_TOKEN is required'),
   TWILIO_WHATSAPP_FROM: z.string().min(1, 'TWILIO_WHATSAPP_FROM is required'),
@@ -631,7 +631,7 @@ Usar `winston` para logging estruturado:
 // Descarregar imagem de URL do Twilio com autenticação Basic
 // Validar tipo MIME (aceitar: image/jpeg, image/png, image/webp)
 // Validar tamanho máximo (MAX_IMAGE_SIZE_MB do .env)
-// Converter para base64 para enviar à Anthropic API
+// Converter para base64 para enviar à OpenAI API
 // Upload para Cloudinary para armazenar permanentemente
 // Retornar: { base64: string, mimeType: string, cloudinaryUrl: string }
 // Lançar erros tipados: 'INVALID_FILE_TYPE' | 'FILE_TOO_LARGE' | 'DOWNLOAD_FAILED'
@@ -670,19 +670,19 @@ Implementar também:
 ### Tarefa 6.5 — Criar `src/services/vision.service.ts`
 
 ```typescript
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { env } from '../config/env';
 import { VisionResult } from '../types';
 import { HAIR_ANALYSIS_SYSTEM_PROMPT } from '../prompts/hairAnalysisPrompt';
 
-const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+const client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 export async function analyzeHairFromImage(
   imageBase64: string,
   mimeType: 'image/jpeg' | 'image/png' | 'image/webp'
 ): Promise<VisionResult> {
-  // 1. Chamar claude-sonnet-4-20250514 com vision
-  // 2. Passar imagem como base64 no formato correto da Anthropic API
+  // 1. Chamar gpt-4.1-mini com vision
+  // 2. Passar imagem como data URL no formato correto da OpenAI Responses API
   // 3. Fazer parse do JSON retornado
   // 4. Validar com zod que o JSON tem a estrutura correta
   // 5. Retornar HairAnalysis ou VisionError
@@ -691,15 +691,12 @@ export async function analyzeHairFromImage(
 }
 ```
 
-**Importante**: usar o modelo `claude-sonnet-4-20250514`. Passar a imagem como:
+**Importante**: usar o modelo `gpt-4.1-mini`. Passar a imagem como:
 ```typescript
 {
-  type: 'image',
-  source: {
-    type: 'base64',
-    media_type: mimeType,
-    data: imageBase64,
-  }
+  type: 'input_image',
+  detail: 'auto',
+  image_url: `data:${mimeType};base64,${imageBase64}`,
 }
 ```
 
@@ -725,7 +722,7 @@ export function getScalpLabel(scalp: string, lang: Language): string
 ```typescript
 // Importar dados de haircuts.ts e products.ts
 // Pré-filtrar cortes e produtos compatíveis com o tipo de cabelo do utilizador
-// Chamar Anthropic API com o prompt de recomendação + dados filtrados
+// Chamar OpenAI API com o prompt de recomendação + dados filtrados
 // Fazer parse do JSON de resposta
 // Retornar Recommendations completo com objetos expandidos (não apenas IDs)
 
@@ -826,7 +823,7 @@ Lógica por estado:
 
 **FOLLOW_UP:**
 - Usar histórico de conversa + última análise para responder
-- Chamar Anthropic com contexto completo
+- Chamar OpenAI com contexto completo
 - Opção para voltar ao menu
 
 **BOOKING:**
@@ -888,7 +885,7 @@ export function validateTwilioSignature(req, res, next): void
 // Em desenvolvimento: retornar stack trace
 // Tipos de erro especiais:
 //   - MongooseError → 503
-//   - AnthropicError → 502
+//   - OpenAIError → 502
 //   - ValidationError (zod) → 400
 //   - Default → 500
 ```
@@ -1083,7 +1080,7 @@ Antes de considerar o projeto concluído, verificar:
 
 ## 📌 NOTAS IMPORTANTES PARA O CODEX
 
-1. **Modelo de IA a usar**: sempre `claude-sonnet-4-20250514` — não usar modelos mais antigos.
+1. **Modelo de IA a usar**: sempre `gpt-4.1-mini` — manter a integração apenas com OpenAI.
 2. **Twilio Sandbox**: durante desenvolvimento, usar o sandbox gratuito do Twilio.
    O número sandbox é `whatsapp:+14155238886`. O utilizador junta-se enviando
    `join <código>` para esse número.

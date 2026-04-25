@@ -1,11 +1,12 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { ConversationMessage, Language, LastAnalysis, SessionState } from '../types';
+import { ConversationMessage, Language, LastAnalysis, QuizProfileDraft, SessionState } from '../types';
 
 export interface ISession extends Document {
   phoneNumber: string;
   name?: string;
   state: SessionState;
   language: Language;
+  quizDraft?: QuizProfileDraft;
   lastAnalysis?: LastAnalysis;
   conversationHistory: ConversationMessage[];
   totalAnalyses: number;
@@ -31,10 +32,22 @@ const SessionSchema = new Schema<ISession>(
     name: { type: String },
     state: {
       type: String,
-      enum: ['INITIAL', 'WAITING_NAME', 'WAITING_PHOTO', 'ANALYZING', 'SHOWING_RESULTS', 'FOLLOW_UP', 'BOOKING'],
+      enum: [
+        'INITIAL',
+        'WAITING_NAME',
+        'WAITING_FACE_SHAPE',
+        'WAITING_HAIR_TEXTURE',
+        'WAITING_LENGTH',
+        'WAITING_BEARD',
+        'WAITING_MAINTENANCE',
+        'SHOWING_RESULTS',
+        'FOLLOW_UP',
+        'BOOKING',
+      ],
       default: 'INITIAL',
     },
     language: { type: String, enum: ['pt', 'en'], default: 'pt' },
+    quizDraft: { type: Schema.Types.Mixed },
     lastAnalysis: { type: Schema.Types.Mixed },
     conversationHistory: { type: [ConversationMessageSchema], default: [] },
     totalAnalyses: { type: Number, default: 0 },

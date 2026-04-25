@@ -1,127 +1,197 @@
-# BoldMens WhatsApp AI
+<p align="center">
+  <img src="./assets/logo-boldmens.svg" alt="Bold Men's AI" width="220" />
+</p>
 
-![Node 20+](https://img.shields.io/badge/node-20%2B-43853d)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)
-![Railway](https://img.shields.io/badge/Railway-ready-111111)
+<h1 align="center">Bold Men's AI</h1>
 
-WhatsApp AI assistant for [boldmens.co](https://boldmens.co). Users send a face photo on WhatsApp and receive haircut suggestions, product recommendations, a daily care routine, and a booking path to Bold Men's Salon.
+<p align="center">
+  Assistente de recomendacao capilar via WhatsApp para a Bold Men's, com recomendacoes personalizadas,
+  fluxo guiado e estrutura pronta para deploy na Railway.
+</p>
 
-## Architecture
+<p align="center">
+  <img src="https://img.shields.io/badge/node-20%2B-43853d" alt="Node 20+" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6" alt="TypeScript 5.x" />
+  <img src="https://img.shields.io/badge/Twilio-WhatsApp-E11D48" alt="Twilio WhatsApp" />
+  <img src="https://img.shields.io/badge/Railway-ready-111111" alt="Railway ready" />
+</p>
+
+## Visao geral
+
+O `Bold_Mens-AI` e um backend em `Node.js + TypeScript` que recebe mensagens do WhatsApp via Twilio, gere sessoes por utilizador e devolve recomendacoes de cortes, produtos e rotina capilar.
+
+Hoje, o fluxo ativo funciona em **modo quiz guiado**: o utilizador responde a algumas perguntas rapidas e o sistema gera sugestoes com base nesse perfil. A base do projeto continua preparada para evoluir para analise por imagem, mas o comportamento atual prioriza o quiz.
+
+> Estado atual: se o utilizador enviar foto, o bot redireciona para o quiz em vez de processar a imagem diretamente.
+
+## O que o projeto entrega
+
+- Atendimento automatico em portugues e ingles.
+- Sessao por numero de WhatsApp com historico, expiracao e continuidade de contexto.
+- Recomendacao ranqueada de cortes com base em formato de rosto, textura, comprimento e manutencao desejada.
+- Sugestao de produtos e rotina diaria compativeis com o perfil informado.
+- Envio de referencias visuais de cortes pelo WhatsApp.
+- Menu de follow-up para rever cortes, produtos, link de agendamento ou iniciar nova analise.
+- Endpoints de saude e protecao basica com `helmet`, `cors` e `express-rate-limit`.
+
+## Fluxo atual da conversa
 
 ```text
-WhatsApp User
-    |
-    v
+Utilizador no WhatsApp
+        |
+        v
 Twilio WhatsApp Webhook
-    |
-    v
-Express API -> Controller -> Session Service -> MongoDB
-                |              |
-                |              -> Analysis history
-                |
-                -> Image Downloader -> Twilio Media URL
-                -> Cloudinary
-                -> Anthropic Vision + Recommendation
-                -> Twilio outbound messages
+        |
+        v
+Express API
+        |
+        +--> Message Controller
+               |
+               +--> Session Service + MongoDB
+               +--> Recommendation Service
+               +--> WhatsApp Service (resposta ao utilizador)
 ```
 
-## Prerequisites
+Fluxo do utilizador:
 
-- Node.js 20+
-- npm 10+
-- MongoDB Atlas or local MongoDB
-- Twilio account with WhatsApp Sandbox
-- Anthropic API key
-- Cloudinary account
+1. Envia a primeira mensagem.
+2. O bot identifica o idioma e pede o nome.
+3. O bot faz 5 perguntas rapidas sobre rosto, textura, comprimento, barba e manutencao.
+4. O motor de recomendacao seleciona cortes, produtos e rotina.
+5. O utilizador recebe o resumo, referencias visuais e um menu com proximos passos.
 
-## Local Setup
+## Stack
 
-1. Clone the repository.
-2. Install dependencies with `npm install`.
-3. Copy `.env.example` to `.env`.
-4. Fill in Anthropic, Twilio, MongoDB, and Cloudinary credentials.
-5. Start MongoDB if using a local instance.
-6. Run `npm run dev`.
+- `Express` para a API e webhooks.
+- `Twilio` para entrada e saida via WhatsApp.
+- `MongoDB + Mongoose` para sessoes e historico.
+- `TypeScript` para tipagem e manutencao.
+- `Vitest` para testes.
+- `Railway` como alvo de deploy.
 
-## Environment Variables
+## Estrutura do projeto
 
-- `ANTHROPIC_API_KEY`: Claude API key.
-- `TWILIO_ACCOUNT_SID`: Twilio account SID.
-- `TWILIO_AUTH_TOKEN`: Twilio auth token.
-- `TWILIO_WHATSAPP_FROM`: WhatsApp sender, usually `whatsapp:+14155238886` in sandbox.
-- `MONGODB_URI`: MongoDB connection string.
-- `CLOUDINARY_CLOUD_NAME`: Cloudinary cloud name.
-- `CLOUDINARY_API_KEY`: Cloudinary API key.
-- `CLOUDINARY_API_SECRET`: Cloudinary API secret.
-- `PORT`: Express port.
-- `NODE_ENV`: `development`, `production`, or `test`.
-- `BOLDMENS_WEBSITE`: allowed CORS origin and booking site.
-- `LOG_LEVEL`: `error`, `warn`, `info`, or `debug`.
-- `RATE_LIMIT_MAX`: IP rate limit ceiling.
-- `RATE_LIMIT_WINDOW_MINUTES`: IP rate limit window.
-- `SESSION_EXPIRY_HOURS`: session reset threshold.
-- `MAX_IMAGE_SIZE_MB`: maximum inbound image size.
+```text
+src/
+  config/        validacao de ambiente
+  controllers/   orquestracao da conversa
+  data/          catalogo de cortes e produtos
+  middleware/    validacao Twilio e tratamento de erros
+  models/        modelos MongoDB
+  routes/        healthcheck e webhook
+  services/      recomendacao, sessao, WhatsApp e visao
+  utils/         formatacao, logs e helpers
+tests/           testes automatizados
+```
+
+## Configuracao rapida
+
+### Requisitos
+
+- `Node.js 20+`
+- `npm 10+`
+- `MongoDB` local ou Atlas
+- Conta `Twilio` com WhatsApp Sandbox
+- Conta `Cloudinary`
+
+### Instalacao
+
+1. Instala as dependencias:
+
+   ```bash
+   npm install
+   ```
+
+2. Cria o ficheiro de ambiente:
+
+   ```bash
+   Copy-Item .env.example .env
+   ```
+
+3. Preenche as credenciais no `.env`.
+
+4. Inicia o servidor em desenvolvimento:
+
+   ```bash
+   npm run dev
+   ```
+
+## Scripts disponiveis
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run test
+npm run test:run
+```
+
+## Variaveis de ambiente
+
+| Variavel | Obrigatoria | Descricao |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | Nao | Chave OpenAI. No fluxo atual de quiz, nao e o elemento principal. |
+| `TWILIO_ACCOUNT_SID` | Sim | SID da conta Twilio. |
+| `TWILIO_AUTH_TOKEN` | Sim | Token de autenticacao da Twilio. |
+| `TWILIO_WHATSAPP_FROM` | Sim | Numero remetente do WhatsApp, normalmente o sandbox. |
+| `MONGODB_URI` | Sim | String de ligacao ao MongoDB. |
+| `CLOUDINARY_CLOUD_NAME` | Sim | Nome da cloud no Cloudinary. |
+| `CLOUDINARY_API_KEY` | Sim | API key do Cloudinary. |
+| `CLOUDINARY_API_SECRET` | Sim | API secret do Cloudinary. |
+| `PORT` | Nao | Porta HTTP da aplicacao. O default e `3000`. |
+| `NODE_ENV` | Nao | `development`, `production` ou `test`. |
+| `BOLDMENS_WEBSITE` | Nao | Origem permitida no CORS e site de booking. |
+| `LOG_LEVEL` | Nao | Nivel de logs: `error`, `warn`, `info` ou `debug`. |
+| `RATE_LIMIT_MAX` | Nao | Maximo de pedidos por janela no webhook. |
+| `RATE_LIMIT_WINDOW_MINUTES` | Nao | Janela do rate limit em minutos. |
+| `SESSION_EXPIRY_HOURS` | Nao | Tempo de expiracao da sessao. |
+| `MAX_IMAGE_SIZE_MB` | Nao | Tamanho maximo de imagem aceite pelo sistema. |
+
+## Endpoints
+
+| Metodo | Rota | Descricao |
+| --- | --- | --- |
+| `POST` | `/webhook/whatsapp` | Recebe eventos do Twilio WhatsApp. |
+| `GET` | `/health` | Healthcheck principal. |
+| `GET` | `/health/detailed` | Healthcheck detalhado em `development`. |
 
 ## Twilio WhatsApp Sandbox
 
-1. Open the Twilio Console.
-2. Enable the WhatsApp Sandbox.
-3. Join the sandbox by sending `join <code>` to `whatsapp:+14155238886`.
-4. Configure the webhook URL as `https://your-domain/webhook/whatsapp`.
-5. For local development, expose the server with `ngrok http 3000`.
+1. Ativa o WhatsApp Sandbox na consola da Twilio.
+2. Envia o codigo `join <codigo-do-sandbox>` para `whatsapp:+14155238886`.
+3. Publica o backend localmente com `ngrok http 3000` ou outra URL publica.
+4. Define o webhook como `https://sua-url/webhook/whatsapp`.
 
-## Usage Flow
-
-1. User sends the first message.
-2. Bot asks for the user's name.
-3. Bot asks for a clear face photo.
-4. Bot downloads the Twilio image, stores it in Cloudinary, and sends it to Anthropic.
-5. Bot formats the results for WhatsApp and shows a follow-up menu.
-6. User can ask for more haircut details, more product details, booking, or a new analysis.
-
-## Health Endpoints
-
-- `GET /health`
-- `GET /health/detailed` in `development`
-
-## Railway Deploy
-
-1. Push the repository to GitHub.
-2. Create a new Railway project.
-3. Connect the repository.
-4. Add all environment variables from `.env.example`.
-5. Railway builds with `npm run build`.
-6. Railway starts with `npm run start`.
-7. Use `/health` as the healthcheck path.
-
-## Example Conversation
+## Exemplo de conversa
 
 ```text
-User: Ola
-Bot: Bem-vindo ao Bold Men's Salon AI. Responde com o teu nome.
-User: Rodrigo
-Bot: Envia uma foto nitida do rosto com o cabelo visivel.
-User: [photo]
-Bot: Estou a analisar a tua foto agora...
-Bot: Analise + cortes recomendados + produtos + rotina
-Bot: 1. Mais detalhes dos cortes / 2. Mais detalhes dos produtos / 3. Link de agendamento / 4. Nova analise
+Utilizador: Ola
+Bot: Bem-vindo a Bold Men's. Responde com o teu nome.
+Utilizador: Rodrigo
+Bot: Pergunta 1/4. Qual formato de rosto combina mais contigo?
+Utilizador: 2
+Bot: Pergunta 2/4. Qual e a textura do teu cabelo?
+...
+Bot: Aqui tens os cortes recomendados, produtos e rotina.
+Bot: 1. Detalhes dos cortes / 2. Detalhes dos produtos / 3. Agendamento / 4. Nova analise
 ```
 
-## Troubleshooting
+## Deploy na Railway
 
-- Missing `.env` values: the server exits during startup with validation errors.
-- Twilio 403 webhook: verify `X-Twilio-Signature`, public URL, and reverse proxy protocol.
-- MongoDB connection errors: confirm `MONGODB_URI` and network allowlist.
-- Anthropic request failures: confirm API key and request quotas.
-- Cloudinary upload errors: confirm cloud name, key, and secret.
+1. Faz push do repositorio para o GitHub.
+2. Cria um projeto novo na Railway.
+3. Liga o repositorio.
+4. Adiciona as variaveis do `.env.example`.
+5. Usa `npm run build` no build e `npm run start` no start.
+6. Configura `/health` como endpoint de healthcheck.
 
-## Roadmap
+## Proximos passos recomendados
 
-- Multi-image analysis and profile evolution
-- Richer booking integration
-- CRM sync and retention metrics
-- Admin dashboard for conversation review
+- Reativar a analise real por foto com o fluxo de visao.
+- Ligar o agendamento a um sistema real de booking.
+- Adicionar painel interno para rever conversas e recomendacoes.
+- Medir conversao de quiz para agendamento.
 
-## License
+## Licenca
 
 MIT

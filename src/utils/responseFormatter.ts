@@ -1,7 +1,7 @@
 import { getConditionLabel, getFaceShapeLabel, getHairTypeLabel, getScalpLabel } from '../services/hairAnalysis.service';
 import { HairAnalysis, Haircut, Language, Recommendations, VisionError } from '../types';
 
-const divider = '━━━━━━━━━━';
+const divider = '----------';
 
 function splitMessage(message: string, limit = 1600): string[] {
   if (message.length <= limit) {
@@ -13,9 +13,7 @@ function splitMessage(message: string, limit = 1600): string[] {
   let current = '';
 
   for (const section of sections) {
-    const candidate = current
-      ? `${current}\n\n${divider}\n\n${section}`
-      : section;
+    const candidate = current ? `${current}\n\n${divider}\n\n${section}` : section;
 
     if (candidate.length <= limit) {
       current = candidate;
@@ -25,6 +23,7 @@ function splitMessage(message: string, limit = 1600): string[] {
     if (current) {
       parts.push(current);
     }
+
     current = section;
   }
 
@@ -64,40 +63,38 @@ function getFaceShapeGuidance(faceShape: HairAnalysis['faceShape'], language: La
 
 export function formatWelcomeMessage(language: Language, name?: string): string {
   if (language === 'en') {
-    return `*Welcome to Bold Men's Salon AI*${name ? `, ${name}` : ''}\n\nI can analyze your hair from a photo and suggest cuts, products, and a daily routine.\n\nReply with your *name* to get started.`;
+    return `*Welcome to Bold Men's Salon AI*${name ? `, ${name}` : ''}\n\nI can recommend cuts, products, and a daily routine through a quick guided quiz.\n\nReply with your *name* to get started.`;
   }
 
-  return `*Bem-vindo ao Bold Men's Salon AI*${name ? `, ${name}` : ''}\n\nPosso analisar o teu cabelo a partir de uma foto e sugerir cortes, produtos e uma rotina diária.\n\nResponde com o teu *nome* para começar.`;
+  return `*Bem-vindo ao Bold Men's Salon AI*${name ? `, ${name}` : ''}\n\nPosso recomendar cortes, produtos e uma rotina diaria atraves de um quiz guiado rapido.\n\nResponde com o teu *nome* para comecar.`;
 }
 
 export function formatAskPhotoMessage(language: Language): string {
-  if (language === 'en') {
-    return '*Next step:* send a clear face photo with your hair visible. Good lighting and a front angle help a lot.';
-  }
-
-  return '*Próximo passo:* envia uma foto nítida do rosto com o cabelo visível. Boa luz e um ângulo frontal ajudam bastante.';
+  return language === 'en'
+    ? 'Free mode does not use photo analysis. Please answer the quiz.'
+    : 'O modo gratuito nao usa analise por foto. Responde ao quiz.';
 }
 
 export function formatAnalyzingMessage(language: Language): string {
   return language === 'en'
-    ? '🔍 Analyzing your photo now. This can take a few seconds...'
-    : '🔍 Estou a analisar a tua foto agora. Isto pode demorar alguns segundos...';
+    ? 'Building your recommendation from the quiz answers...'
+    : 'Estou a montar a tua recomendacao a partir das respostas do quiz...';
 }
 
 export function formatFollowUpMenu(language: Language): string {
   if (language === 'en') {
-    return `*What would you like next?*\n1. More haircut details\n2. More product details\n3. Booking link\n4. New photo analysis\n\nType a number or ask a follow-up question.`;
+    return `*What would you like next?*\n1. More haircut details\n2. More product details\n3. Booking link\n4. New quiz analysis\n\nType a number or ask a follow-up question.`;
   }
 
-  return `*O que queres ver a seguir?*\n1. Mais detalhes dos cortes\n2. Mais detalhes dos produtos\n3. Link de agendamento\n4. Nova análise com outra foto\n\nEscreve um número ou faz uma pergunta.`;
+  return `*O que queres ver a seguir?*\n1. Mais detalhes dos cortes\n2. Mais detalhes dos produtos\n3. Link de agendamento\n4. Novo quiz de recomendacao\n\nEscreve um numero ou faz uma pergunta.`;
 }
 
 export function formatBookingMessage(language: Language): string {
   if (language === 'en') {
-    return `📅 *Book your visit*\n\nWebsite: https://boldmens.co\nBooking: https://boldmens.co\n\nIf you want, send another photo for a new analysis.`;
+    return `*Book your visit*\n\nWebsite: https://boldmens.co\nBooking: https://boldmens.co\n\nIf you want, start another quiz for a new recommendation.`;
   }
 
-  return `📅 *Marca a tua visita*\n\nWebsite: https://boldmens.co\nAgendamento: https://boldmens.co\n\nSe quiseres, envia outra foto para fazer nova análise.`;
+  return `*Marca a tua visita*\n\nWebsite: https://boldmens.co\nAgendamento: https://boldmens.co\n\nSe quiseres, faz outro quiz para nova recomendacao.`;
 }
 
 export function formatErrorMessage(
@@ -106,24 +103,24 @@ export function formatErrorMessage(
 ): string {
   const messages = {
     pt: {
-      IMAGE_QUALITY_TOO_LOW: 'A foto não tem qualidade suficiente. Tenta com mais luz e o rosto bem visível.',
-      NO_FACE_DETECTED: 'Não consegui detetar um rosto humano na imagem. Envia uma foto frontal do teu rosto.',
-      ANALYSIS_FAILED: 'A análise falhou desta vez. Envia a foto novamente.',
-      INVALID_FILE_TYPE: 'O ficheiro enviado não é suportado. Usa JPEG, PNG ou WebP.',
-      FILE_TOO_LARGE: 'A imagem é demasiado grande. Envia uma foto até 5 MB.',
-      DOWNLOAD_FAILED: 'Não consegui descarregar a imagem do Twilio. Tenta outra vez.',
+      IMAGE_QUALITY_TOO_LOW: 'A foto nao tem qualidade suficiente.',
+      NO_FACE_DETECTED: 'Nao consegui detetar um rosto humano na imagem.',
+      ANALYSIS_FAILED: 'A analise falhou desta vez.',
+      INVALID_FILE_TYPE: 'O ficheiro enviado nao e suportado.',
+      FILE_TOO_LARGE: 'A imagem e demasiado grande.',
+      DOWNLOAD_FAILED: 'Nao consegui descarregar a imagem.',
     },
     en: {
-      IMAGE_QUALITY_TOO_LOW: 'The photo quality is too low. Try again with better lighting and a clear face shot.',
-      NO_FACE_DETECTED: 'I could not detect a human face. Please send a clear front-facing photo.',
-      ANALYSIS_FAILED: 'The analysis failed this time. Please send the photo again.',
-      INVALID_FILE_TYPE: 'Unsupported file type. Please use JPEG, PNG, or WebP.',
-      FILE_TOO_LARGE: 'The image is too large. Please send a photo up to 5 MB.',
-      DOWNLOAD_FAILED: 'I could not download the Twilio image. Please try again.',
+      IMAGE_QUALITY_TOO_LOW: 'The photo quality is too low.',
+      NO_FACE_DETECTED: 'I could not detect a human face in the image.',
+      ANALYSIS_FAILED: 'The analysis failed this time.',
+      INVALID_FILE_TYPE: 'Unsupported file type.',
+      FILE_TOO_LARGE: 'The image is too large.',
+      DOWNLOAD_FAILED: 'I could not download the image.',
     },
   };
 
-  return `⚠️ ${messages[language][errorCode]}`;
+  return `Warning: ${messages[language][errorCode]}`;
 }
 
 export function formatAnalysisResponse(
@@ -132,7 +129,6 @@ export function formatAnalysisResponse(
   language: Language,
 ): string[] {
   const isEn = language === 'en';
-
   const haircuts = recommendations.haircuts
     .map((haircut, index) => `${index + 1}. ${haircut.emoji} *${isEn ? haircut.nameEn : haircut.name}*`)
     .join('\n');
@@ -144,21 +140,21 @@ export function formatAnalysisResponse(
   const routine = recommendations.routine.map((step, index) => `${index + 1}. ${step}`).join('\n');
 
   const message = [
-    `💈 *${isEn ? "Your Bold Men's Analysis" : 'A tua análise Bold Men\'s'}*`,
+    `*${isEn ? "Your Bold Men's Analysis" : 'A tua analise Bold Men\'s'}*`,
     `_${recommendations.summary}_`,
     divider,
-    `${isEn ? '🧠 Face shape' : '🧠 Formato do rosto'}: *${getFaceShapeLabel(analysis.faceShape, language)}*`,
+    `${isEn ? 'Face shape' : 'Formato do rosto'}: *${getFaceShapeLabel(analysis.faceShape, language)}*`,
     `${isEn ? 'Why it matters' : 'Porque isto importa'}: _${getFaceShapeGuidance(analysis.faceShape, language)}_`,
-    `${isEn ? '🧴 Hair type' : '🧴 Tipo de cabelo'}: *${getHairTypeLabel(analysis, language)}*`,
-    `${isEn ? '💧 Condition' : '💧 Condição'}: *${getConditionLabel(analysis.hairCondition, language)}*`,
-    `${isEn ? '🫧 Scalp' : '🫧 Couro cabeludo'}: *${getScalpLabel(analysis.hairCondition.scalpCondition, language)}*`,
-    `${isEn ? '📏 Current length' : '📏 Comprimento atual'}: *${analysis.currentLength}*`,
+    `${isEn ? 'Hair type' : 'Tipo de cabelo'}: *${getHairTypeLabel(analysis, language)}*`,
+    `${isEn ? 'Condition' : 'Condicao'}: *${getConditionLabel(analysis.hairCondition, language)}*`,
+    `${isEn ? 'Scalp' : 'Couro cabeludo'}: *${getScalpLabel(analysis.hairCondition.scalpCondition, language)}*`,
+    `${isEn ? 'Current length' : 'Comprimento atual'}: *${analysis.currentLength}*`,
     divider,
-    `${isEn ? '✂️ Recommended cuts' : '✂️ Cortes recomendados'}\n${haircuts}`,
+    `${isEn ? 'Recommended cuts' : 'Cortes recomendados'}\n${haircuts}`,
     divider,
-    `${isEn ? '🧴 Suggested products' : '🧴 Produtos sugeridos'}\n${products}`,
+    `${isEn ? 'Suggested products' : 'Produtos sugeridos'}\n${products}`,
     divider,
-    `${isEn ? '📅 Daily routine' : '📅 Rotina diária'}\n${routine}`,
+    `${isEn ? 'Daily routine' : 'Rotina diaria'}\n${routine}`,
   ].join('\n\n');
 
   return splitMessage(message);

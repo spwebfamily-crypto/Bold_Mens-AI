@@ -112,8 +112,11 @@ export interface Product {
 export type SessionState =
   | 'INITIAL'
   | 'WAITING_NAME'
-  | 'WAITING_PHOTO'
-  | 'ANALYZING'
+  | 'WAITING_FACE_SHAPE'
+  | 'WAITING_HAIR_TEXTURE'
+  | 'WAITING_LENGTH'
+  | 'WAITING_BEARD'
+  | 'WAITING_MAINTENANCE'
   | 'SHOWING_RESULTS'
   | 'FOLLOW_UP'
   | 'BOOKING';
@@ -132,6 +135,14 @@ export interface Recommendations {
   products: Product[];
   routine: string[];
   summary: string;
+}
+
+export interface QuizProfileDraft {
+  faceShape?: FaceShape;
+  hairTexture?: HairTexture;
+  currentLength?: HairAnalysis['currentLength'];
+  beard?: boolean;
+  preferredMaintenance?: Haircut['maintenanceLevel'];
 }
 
 export interface LastAnalysis {

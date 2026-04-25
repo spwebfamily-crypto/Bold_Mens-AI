@@ -30,7 +30,7 @@ export function errorHandler(
     return;
   }
 
-  if (error instanceof Error && error.name.toLowerCase().includes('anthropic')) {
+  if (error instanceof Error && error.name.toLowerCase().includes('openai')) {
     res.status(502).json({
       error: 'AI provider error',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined,

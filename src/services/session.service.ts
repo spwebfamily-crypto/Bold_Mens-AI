@@ -44,6 +44,7 @@ export async function checkAndResetExpiredSession(session: ISession): Promise<IS
   }
 
   session.state = 'INITIAL';
+  session.quizDraft = undefined;
   session.lastAnalysis = undefined;
   session.photoAttempts = 0;
   session.conversationHistory = [];
@@ -96,6 +97,7 @@ export async function saveAnalysis(
     analyzedAt: new Date(),
     imageUrl,
   };
+  session.quizDraft = undefined;
   session.totalAnalyses += 1;
   session.photoAttempts = 0;
   session.lastInteraction = new Date();
