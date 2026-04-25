@@ -1,197 +1,273 @@
-<p align="center">
-  <img src="./assets/logo-boldmens.svg" alt="Bold Men's AI" width="220" />
-</p>
+# BoldMens AI
 
-<h1 align="center">Bold Men's AI</h1>
+BoldMens AI e uma aplicacao mobile iOS construida com Expo e React Native para analise de selfies, recomendacoes personalizadas de cortes de cabelo, produtos, tendencias e gestao de planos FREE/PLUS. O projeto inclui tambem uma API Node.js/Express em TypeScript responsavel por autenticacao, analise com IA, historico, subscricoes e integracoes externas.
 
-<p align="center">
-  Assistente de recomendacao capilar via WhatsApp para a Bold Men's, com recomendacoes personalizadas,
-  fluxo guiado e estrutura pronta para deploy na Railway.
-</p>
+## Visao Geral
 
-<p align="center">
-  <img src="https://img.shields.io/badge/node-20%2B-43853d" alt="Node 20+" />
-  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6" alt="TypeScript 5.x" />
-  <img src="https://img.shields.io/badge/Twilio-WhatsApp-E11D48" alt="Twilio WhatsApp" />
-  <img src="https://img.shields.io/badge/Railway-ready-111111" alt="Railway ready" />
-</p>
+- App mobile com Expo Router, NativeWind, Zustand e TanStack Query.
+- Backend Express com TypeScript, MongoDB, Redis, JWT e middlewares de seguranca.
+- Analise de imagem com Anthropic Vision e streaming de resposta via Server-Sent Events.
+- Upload e retencao de imagens com Cloudinary.
+- Autenticacao por email/password e Sign in with Apple.
+- Subscricoes PLUS com RevenueCat e webhook de sincronizacao.
+- Planos com limites diarios, historico diferenciado e tendencias exclusivas.
 
-## Visao geral
+## Stack Tecnica
 
-O `Bold_Mens-AI` e um backend em `Node.js + TypeScript` que recebe mensagens do WhatsApp via Twilio, gere sessoes por utilizador e devolve recomendacoes de cortes, produtos e rotina capilar.
+### Mobile
 
-Hoje, o fluxo ativo funciona em **modo quiz guiado**: o utilizador responde a algumas perguntas rapidas e o sistema gera sugestoes com base nesse perfil. A base do projeto continua preparada para evoluir para analise por imagem, mas o comportamento atual prioriza o quiz.
+- Expo 54
+- React Native 0.81
+- React 19
+- Expo Router 6
+- NativeWind + Tailwind CSS
+- Zustand
+- TanStack Query
+- Axios
+- RevenueCat Purchases
+- Expo Camera, Image Picker, Notifications e Secure Store
 
-> Estado atual: se o utilizador enviar foto, o bot redireciona para o quiz em vez de processar a imagem diretamente.
+### Backend
 
-## O que o projeto entrega
+- Node.js
+- Express 4
+- TypeScript
+- MongoDB + Mongoose
+- Redis + ioredis
+- JWT + refresh tokens
+- Zod
+- Anthropic SDK
+- Cloudinary
+- RevenueCat
+- Helmet, CORS, Compression e rate limiting
 
-- Atendimento automatico em portugues e ingles.
-- Sessao por numero de WhatsApp com historico, expiracao e continuidade de contexto.
-- Recomendacao ranqueada de cortes com base em formato de rosto, textura, comprimento e manutencao desejada.
-- Sugestao de produtos e rotina diaria compativeis com o perfil informado.
-- Envio de referencias visuais de cortes pelo WhatsApp.
-- Menu de follow-up para rever cortes, produtos, link de agendamento ou iniciar nova analise.
-- Endpoints de saude e protecao basica com `helmet`, `cors` e `express-rate-limit`.
-
-## Fluxo atual da conversa
-
-```text
-Utilizador no WhatsApp
-        |
-        v
-Twilio WhatsApp Webhook
-        |
-        v
-Express API
-        |
-        +--> Message Controller
-               |
-               +--> Session Service + MongoDB
-               +--> Recommendation Service
-               +--> WhatsApp Service (resposta ao utilizador)
-```
-
-Fluxo do utilizador:
-
-1. Envia a primeira mensagem.
-2. O bot identifica o idioma e pede o nome.
-3. O bot faz 5 perguntas rapidas sobre rosto, textura, comprimento, barba e manutencao.
-4. O motor de recomendacao seleciona cortes, produtos e rotina.
-5. O utilizador recebe o resumo, referencias visuais e um menu com proximos passos.
-
-## Stack
-
-- `Express` para a API e webhooks.
-- `Twilio` para entrada e saida via WhatsApp.
-- `MongoDB + Mongoose` para sessoes e historico.
-- `TypeScript` para tipagem e manutencao.
-- `Vitest` para testes.
-- `Railway` como alvo de deploy.
-
-## Estrutura do projeto
+## Estrutura do Projeto
 
 ```text
-src/
-  config/        validacao de ambiente
-  controllers/   orquestracao da conversa
-  data/          catalogo de cortes e produtos
-  middleware/    validacao Twilio e tratamento de erros
-  models/        modelos MongoDB
-  routes/        healthcheck e webhook
-  services/      recomendacao, sessao, WhatsApp e visao
-  utils/         formatacao, logs e helpers
-tests/           testes automatizados
+.
+|-- app/                  # Rotas e telas da app Expo
+|-- assets/               # Icones, splash screen e imagens nativas
+|-- backend/              # API Express/TypeScript
+|   |-- src/
+|   |   |-- config/       # Ambiente, MongoDB e Redis
+|   |   |-- controllers/  # Handlers HTTP
+|   |   |-- middleware/   # Auth, limites, upload e erros
+|   |   |-- models/       # Modelos Mongoose
+|   |   |-- routes/       # Rotas da API
+|   |   |-- services/     # IA, Cloudinary, RevenueCat e tendencias
+|   |   `-- utils/        # Tokens, datas, limites e helpers
+|   `-- tests/            # Testes unitarios do backend
+|-- components/           # Componentes reutilizaveis da UI
+|-- constants/            # Planos, cores e constantes da app
+|-- hooks/                # Hooks de autenticacao, chat, analise e subscricao
+|-- services/             # Cliente API e servicos mobile
+|-- stores/               # Stores Zustand
+|-- tests/                # Testes unitarios da app
+|-- types/                # Tipos compartilhados do frontend
+`-- utils/                # Utilitarios da app
 ```
 
-## Configuracao rapida
+## Pre-requisitos
 
-### Requisitos
+- Node.js 20 ou superior
+- npm
+- Expo CLI via `npx expo`
+- MongoDB disponivel localmente ou em cloud
+- Redis disponivel localmente ou em cloud
+- Conta Anthropic para analise real de imagem
+- Conta Cloudinary para upload de imagens
+- Conta RevenueCat para subscricoes iOS
+- Xcode e simulador iOS para execucao nativa
 
-- `Node.js 20+`
-- `npm 10+`
-- `MongoDB` local ou Atlas
-- Conta `Twilio` com WhatsApp Sandbox
-- Conta `Cloudinary`
+## Configuracao
 
-### Instalacao
-
-1. Instala as dependencias:
-
-   ```bash
-   npm install
-   ```
-
-2. Cria o ficheiro de ambiente:
-
-   ```bash
-   Copy-Item .env.example .env
-   ```
-
-3. Preenche as credenciais no `.env`.
-
-4. Inicia o servidor em desenvolvimento:
-
-   ```bash
-   npm run dev
-   ```
-
-## Scripts disponiveis
+1. Instale as dependencias:
 
 ```bash
-npm run dev
-npm run build
-npm run start
-npm run test
-npm run test:run
+npm install
 ```
 
-## Variaveis de ambiente
+2. Crie o arquivo de ambiente:
 
-| Variavel | Obrigatoria | Descricao |
-| --- | --- | --- |
-| `OPENAI_API_KEY` | Nao | Chave OpenAI. No fluxo atual de quiz, nao e o elemento principal. |
-| `TWILIO_ACCOUNT_SID` | Sim | SID da conta Twilio. |
-| `TWILIO_AUTH_TOKEN` | Sim | Token de autenticacao da Twilio. |
-| `TWILIO_WHATSAPP_FROM` | Sim | Numero remetente do WhatsApp, normalmente o sandbox. |
-| `MONGODB_URI` | Sim | String de ligacao ao MongoDB. |
-| `CLOUDINARY_CLOUD_NAME` | Sim | Nome da cloud no Cloudinary. |
-| `CLOUDINARY_API_KEY` | Sim | API key do Cloudinary. |
-| `CLOUDINARY_API_SECRET` | Sim | API secret do Cloudinary. |
-| `PORT` | Nao | Porta HTTP da aplicacao. O default e `3000`. |
-| `NODE_ENV` | Nao | `development`, `production` ou `test`. |
-| `BOLDMENS_WEBSITE` | Nao | Origem permitida no CORS e site de booking. |
-| `LOG_LEVEL` | Nao | Nivel de logs: `error`, `warn`, `info` ou `debug`. |
-| `RATE_LIMIT_MAX` | Nao | Maximo de pedidos por janela no webhook. |
-| `RATE_LIMIT_WINDOW_MINUTES` | Nao | Janela do rate limit em minutos. |
-| `SESSION_EXPIRY_HOURS` | Nao | Tempo de expiracao da sessao. |
-| `MAX_IMAGE_SIZE_MB` | Nao | Tamanho maximo de imagem aceite pelo sistema. |
+```bash
+cp .env.example .env
+```
 
-## Endpoints
+3. Preencha as variaveis necessarias:
 
-| Metodo | Rota | Descricao |
-| --- | --- | --- |
-| `POST` | `/webhook/whatsapp` | Recebe eventos do Twilio WhatsApp. |
-| `GET` | `/health` | Healthcheck principal. |
-| `GET` | `/health/detailed` | Healthcheck detalhado em `development`. |
+```env
+ANTHROPIC_API_KEY=sk-ant-...
+MONGODB_URI=mongodb+srv://...
+REDIS_URL=redis://...
+JWT_SECRET=replace-with-strong-secret
+JWT_REFRESH_SECRET=replace-with-strong-refresh-secret
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+REVENUECAT_API_KEY=...
+REVENUECAT_WEBHOOK_AUTH=...
+EXPO_PUBLIC_API_URL=http://localhost:3000/api
+EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_...
+EXPO_PUBLIC_FREE_DAILY_LIMIT=3
+```
 
-## Twilio WhatsApp Sandbox
+> O backend procura variaveis primeiro em `backend/.env` e depois no `.env` da raiz. Nunca versionar chaves reais, tokens ou credenciais.
 
-1. Ativa o WhatsApp Sandbox na consola da Twilio.
-2. Envia o codigo `join <codigo-do-sandbox>` para `whatsapp:+14155238886`.
-3. Publica o backend localmente com `ngrok http 3000` ou outra URL publica.
-4. Define o webhook como `https://sua-url/webhook/whatsapp`.
+## Execucao Local
 
-## Exemplo de conversa
+### App Expo
+
+```bash
+npm run start
+```
+
+Para abrir diretamente em cada plataforma:
+
+```bash
+npm run ios
+npm run android
+npm run web
+```
+
+### Backend
+
+```bash
+npm run backend:dev
+```
+
+Por padrao, a API sobe em:
 
 ```text
-Utilizador: Ola
-Bot: Bem-vindo a Bold Men's. Responde com o teu nome.
-Utilizador: Rodrigo
-Bot: Pergunta 1/4. Qual formato de rosto combina mais contigo?
-Utilizador: 2
-Bot: Pergunta 2/4. Qual e a textura do teu cabelo?
-...
-Bot: Aqui tens os cortes recomendados, produtos e rotina.
-Bot: 1. Detalhes dos cortes / 2. Detalhes dos produtos / 3. Agendamento / 4. Nova analise
+http://localhost:3000
 ```
 
-## Deploy na Railway
+Healthcheck:
 
-1. Faz push do repositorio para o GitHub.
-2. Cria um projeto novo na Railway.
-3. Liga o repositorio.
-4. Adiciona as variaveis do `.env.example`.
-5. Usa `npm run build` no build e `npm run start` no start.
-6. Configura `/health` como endpoint de healthcheck.
+```text
+GET /health
+```
 
-## Proximos passos recomendados
+## Scripts
 
-- Reativar a analise real por foto com o fluxo de visao.
-- Ligar o agendamento a um sistema real de booking.
-- Adicionar painel interno para rever conversas e recomendacoes.
-- Medir conversao de quiz para agendamento.
+```bash
+npm run start          # Inicia o Expo
+npm run ios            # Executa a app iOS
+npm run android        # Executa a app Android
+npm run web            # Executa a app web via Expo
+npm run lint           # Executa ESLint
+npm run typecheck      # Valida TypeScript da app
+npm run test           # Executa testes da app
+npm run backend:dev    # Inicia a API em modo desenvolvimento
+npm run backend:build  # Compila o backend
+npm run backend:test   # Compila e executa testes do backend
+```
+
+## Rotas da API
+
+### Autenticacao
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/refresh
+POST /api/auth/apple
+GET  /api/auth/me
+POST /api/auth/logout
+```
+
+### Analises
+
+```text
+GET  /api/analysis
+GET  /api/analysis/:id
+POST /api/analysis
+```
+
+O endpoint `POST /api/analysis` recebe uma imagem via `multipart/form-data`, aplica limite por plano e devolve eventos SSE:
+
+```text
+status -> progresso da analise
+delta  -> texto parcial da IA
+final  -> resultado estruturado
+error  -> erro de processamento
+```
+
+### Subscricao
+
+```text
+GET  /api/subscription
+POST /api/subscription/validate
+POST /api/subscription/revenuecat/webhook
+```
+
+### Tendencias
+
+```text
+GET /api/trends
+GET /api/trends?hairType=wavy
+```
+
+## Planos
+
+| Plano | Limite de analises | Historico | Recursos |
+| --- | --- | --- | --- |
+| FREE | 3 por dia | 7 dias | Sugestoes essenciais, 3 produtos e tendencias basicas |
+| PLUS | Ilimitado | 365 dias | Tendencias completas, rotina diaria, mais produtos e experiencia sem anuncios |
+
+O limite diario e calculado por timezone do utilizador e pode ser ajustado por `FREE_DAILY_LIMIT` e `EXPO_PUBLIC_FREE_DAILY_LIMIT`.
+
+## Fluxo de Analise
+
+1. O utilizador captura ou escolhe uma selfie na app.
+2. A imagem e comprimida no mobile antes do envio.
+3. O backend valida autenticacao e limite do plano.
+4. A imagem e enviada para Cloudinary.
+5. A selfie e analisada com Anthropic Vision.
+6. A resposta e transmitida para a app por SSE.
+7. O resultado estruturado e guardado no MongoDB.
+8. O historico fica disponivel conforme a retencao do plano.
+
+## Qualidade e Testes
+
+Antes de abrir um pull request ou gerar build, execute:
+
+```bash
+npm run typecheck
+npm run test
+npm run backend:test
+```
+
+Quando alterar regras de planos, limites ou retencao, valide tambem os testes do backend, especialmente `backend/tests/unit/planGuard.test.mjs`.
+
+## Seguranca
+
+- Tokens de acesso usam JWT de curta duracao.
+- Refresh tokens sao armazenados com hash.
+- Rotas protegidas exigem `Authorization: Bearer <token>`.
+- CORS e configurado por `CORS_ORIGINS`.
+- Uploads passam por `multer` em memoria.
+- Helmet, compression e rate limiting sao aplicados globalmente.
+- Webhooks RevenueCat podem exigir bearer token via `REVENUECAT_WEBHOOK_AUTH`.
+
+## Integracoes Externas
+
+| Servico | Uso |
+| --- | --- |
+| Anthropic | Analise de selfie e geracao de recomendacoes |
+| Cloudinary | Upload e armazenamento temporario de imagens |
+| MongoDB | Usuarios, analises e uso diario |
+| Redis | Infra de cache/limites quando configurada |
+| RevenueCat | Compras, restauracao e estado da subscricao |
+| Apple | Sign in with Apple e validacao de identity token |
+
+## Notas de Desenvolvimento
+
+- Sem `ANTHROPIC_API_KEY`, o backend usa uma analise mock para desenvolvimento local.
+- O produto PLUS esperado no app e `com.boldmens.plus.monthly`.
+- O bundle identifier iOS configurado e `co.boldmens.ai`.
+- A app usa tema escuro e copy em portugues europeu.
+- O endpoint base da app vem de `EXPO_PUBLIC_API_URL` ou de `app.config.ts`.
 
 ## Licenca
 
-MIT
+Projeto privado. Todos os direitos reservados.
