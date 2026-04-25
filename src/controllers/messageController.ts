@@ -7,6 +7,7 @@ import {
   formatBookingMessage,
   formatErrorMessage,
   formatFollowUpMenu,
+  formatHaircutReferenceCaption,
   formatWelcomeMessage,
 } from '../utils/responseFormatter';
 import { logger } from '../utils/logger';
@@ -20,7 +21,7 @@ import {
   saveAnalysis,
   updateSessionState,
 } from '../services/session.service';
-import { sendMessage, sendMultipleMessages } from '../services/whatsapp.service';
+import { sendMediaMessage, sendMessage, sendMultipleMediaMessages, sendMultipleMessages } from '../services/whatsapp.service';
 import { Haircut, Language, Product, TwilioWebhookBody } from '../types';
 
 const perNumberRateLimit = new Map<string, { count: number; resetAt: number }>();
@@ -60,6 +61,16 @@ async function sendTrackedMessages(phoneNumber: string, messages: string[]): Pro
   await sendMultipleMessages(phoneNumber, messages);
   for (const message of messages) {
     await addMessageToHistory(phoneNumber, 'assistant', message);
+  }
+}
+
+async function sendTrackedMediaMessages(
+  phoneNumber: string,
+  messages: Array<{ body: string; mediaUrl: string }>,
+): Promise<void> {
+  await sendMultipleMediaMessages(phoneNumber, messages);
+  for (const message of messages) {
+    await addMessageToHistory(phoneNumber, 'assistant', `${message.body}\n[media] ${message.mediaUrl}`);
   }
 }
 
@@ -197,7 +208,7 @@ export async function handleIncomingMessage(body: TwilioWebhookBody): Promise<vo
       const startedAt = Date.now();
 
       try {
-        const downloaded = await downloadTwilioImage(body.MediaUrl0);
+        const downloaded = await downloadTwilioImage(body.MediaUrl0, body.MediaContentType0);
         const visionResult = await analyzeHairFromImage(downloaded.base64, downloaded.mimeType);
 
         if ('error' in visionResult) {
@@ -217,6 +228,17 @@ export async function handleIncomingMessage(body: TwilioWebhookBody): Promise<vo
 
         const resultMessages = formatAnalysisResponse(visionResult, recommendations, session.language);
         await sendTrackedMessages(phoneNumber, resultMessages);
+        const haircutMediaMessages = recommendations.haircuts
+          .filter((haircut) => Boolean(haircut.imageUrl))
+          .slice(0, 3)
+          .map((haircut, index) => ({
+            body: formatHaircutReferenceCaption(haircut, session.language, index + 1),
+            mediaUrl: haircut.imageUrl as string,
+          }));
+
+        if (haircutMediaMessages.length > 0) {
+          await sendTrackedMediaMessages(phoneNumber, haircutMediaMessages);
+        }
         await sendTrackedMessage(phoneNumber, formatFollowUpMenu(session.language));
         await updateSessionState(phoneNumber, 'SHOWING_RESULTS');
       } catch (error) {

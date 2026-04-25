@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { v2 as cloudinary } from 'cloudinary';
 import { DownloadErrorCode, DownloadedImage } from '../types';
+import { logger } from './logger';
 
 const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
@@ -16,6 +17,16 @@ export class DownloadError extends Error {
 
 let cloudinaryConfigured = false;
 
+function normalizeMimeType(value?: string): string {
+  switch ((value ?? '').split(';')[0].trim().toLowerCase()) {
+    case 'image/jpg':
+    case 'image/pjpeg':
+      return 'image/jpeg';
+    default:
+      return (value ?? '').split(';')[0].trim().toLowerCase();
+  }
+}
+
 function ensureCloudinaryConfigured(): void {
   if (cloudinaryConfigured) {
     return;
@@ -30,7 +41,27 @@ function ensureCloudinaryConfigured(): void {
   cloudinaryConfigured = true;
 }
 
-export async function downloadTwilioImage(mediaUrl: string): Promise<DownloadedImage> {
+async function uploadToCloudinary(base64: string, mimeType: DownloadedImage['mimeType']): Promise<string | undefined> {
+  try {
+    ensureCloudinaryConfigured();
+    const uploadResult = await cloudinary.uploader.upload(`data:${mimeType};base64,${base64}`, {
+      folder: 'boldmens-whatsapp-ai',
+      resource_type: 'image',
+    });
+
+    return uploadResult.secure_url;
+  } catch (error) {
+    logger.warn('Cloudinary upload failed; continuing without persistent image URL', {
+      error: error instanceof Error ? error.message : 'Unknown Cloudinary error',
+    });
+    return undefined;
+  }
+}
+
+export async function downloadTwilioImage(
+  mediaUrl: string,
+  hintedMimeType?: string,
+): Promise<DownloadedImage> {
   const maxImageBytes = Number(process.env.MAX_IMAGE_SIZE_MB ?? 5) * 1024 * 1024;
 
   try {
@@ -45,7 +76,9 @@ export async function downloadTwilioImage(mediaUrl: string): Promise<DownloadedI
     });
 
     const rawContentType = response.headers['content-type'];
-    const contentType = typeof rawContentType === 'string' ? rawContentType.split(';')[0] : '';
+    const contentType = normalizeMimeType(
+      typeof rawContentType === 'string' && rawContentType ? rawContentType : hintedMimeType,
+    );
 
     if (!allowedMimeTypes.has(contentType)) {
       throw new DownloadError('INVALID_FILE_TYPE', `Unsupported MIME type: ${contentType}`);
@@ -58,17 +91,12 @@ export async function downloadTwilioImage(mediaUrl: string): Promise<DownloadedI
     }
 
     const base64 = buffer.toString('base64');
-
-    ensureCloudinaryConfigured();
-    const uploadResult = await cloudinary.uploader.upload(`data:${contentType};base64,${base64}`, {
-      folder: 'boldmens-whatsapp-ai',
-      resource_type: 'image',
-    });
+    const cloudinaryUrl = await uploadToCloudinary(base64, contentType as DownloadedImage['mimeType']);
 
     return {
       base64,
       mimeType: contentType as DownloadedImage['mimeType'],
-      cloudinaryUrl: uploadResult.secure_url,
+      cloudinaryUrl,
     };
   } catch (error) {
     if (error instanceof DownloadError) {

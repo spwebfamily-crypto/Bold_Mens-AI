@@ -68,6 +68,7 @@ export interface Haircut {
   nameEn: string;
   description: string;
   descriptionEn: string;
+  imageUrl?: string;
   suitableFaceShapes: FaceShape[];
   suitableHairTypes: string[];
   avoidForHairTypes: string[];
@@ -157,5 +158,5 @@ export type DownloadErrorCode = 'INVALID_FILE_TYPE' | 'FILE_TOO_LARGE' | 'DOWNLO
 export interface DownloadedImage {
   base64: string;
   mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
-  cloudinaryUrl: string;
+  cloudinaryUrl?: string;
 }

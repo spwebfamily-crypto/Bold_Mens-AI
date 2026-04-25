@@ -1,5 +1,5 @@
 import { getConditionLabel, getFaceShapeLabel, getHairTypeLabel, getScalpLabel } from '../services/hairAnalysis.service';
-import { HairAnalysis, Language, Recommendations, VisionError } from '../types';
+import { HairAnalysis, Haircut, Language, Recommendations, VisionError } from '../types';
 
 const divider = '━━━━━━━━━━';
 
@@ -33,6 +33,33 @@ function splitMessage(message: string, limit = 1600): string[] {
   }
 
   return parts;
+}
+
+function getFaceShapeGuidance(faceShape: HairAnalysis['faceShape'], language: Language): string {
+  const guidance = {
+    pt: {
+      oval: 'O rosto oval aceita mais variedade, por isso priorizei cortes equilibrados e versateis.',
+      round: 'Como o rosto e mais redondo, priorizei cortes com altura e laterais mais limpas para alongar.',
+      square: 'Como o maxilar e forte, priorizei cortes que mantem estrutura e acabamento definido.',
+      heart: 'Como a testa ganha mais destaque, priorizei cortes que equilibram topo e laterais.',
+      diamond: 'Como as macas do rosto se destacam, priorizei cortes que suavizam e equilibram o contorno.',
+      oblong: 'Como o rosto e mais alongado, priorizei cortes que evitam exagerar demasiada altura no topo.',
+      triangle: 'Como a linha do maxilar e mais marcada, priorizei cortes que trazem equilibrio visual acima.',
+      unknown: 'O formato do rosto nao ficou totalmente claro, por isso usei uma selecao mais segura e versatil.',
+    },
+    en: {
+      oval: 'Your face shape is versatile, so I prioritized balanced cuts that work across different finishes.',
+      round: 'Because your face is rounder, I prioritized cleaner sides and more height to elongate it.',
+      square: 'Because your jawline is stronger, I prioritized cuts that keep structure and definition.',
+      heart: 'Because the forehead stands out more, I prioritized styles that balance the top and sides.',
+      diamond: 'Because the cheekbones stand out, I prioritized cuts that soften and balance the outline.',
+      oblong: 'Because your face is longer, I prioritized cuts that avoid adding too much extra height.',
+      triangle: 'Because the jawline is more pronounced, I prioritized styles that add visual balance above.',
+      unknown: 'Your face shape was not fully clear, so I used a safer and more versatile cut selection.',
+    },
+  };
+
+  return guidance[language][faceShape];
 }
 
 export function formatWelcomeMessage(language: Language, name?: string): string {
@@ -121,6 +148,7 @@ export function formatAnalysisResponse(
     `_${recommendations.summary}_`,
     divider,
     `${isEn ? '🧠 Face shape' : '🧠 Formato do rosto'}: *${getFaceShapeLabel(analysis.faceShape, language)}*`,
+    `${isEn ? 'Why it matters' : 'Porque isto importa'}: _${getFaceShapeGuidance(analysis.faceShape, language)}_`,
     `${isEn ? '🧴 Hair type' : '🧴 Tipo de cabelo'}: *${getHairTypeLabel(analysis, language)}*`,
     `${isEn ? '💧 Condition' : '💧 Condição'}: *${getConditionLabel(analysis.hairCondition, language)}*`,
     `${isEn ? '🫧 Scalp' : '🫧 Couro cabeludo'}: *${getScalpLabel(analysis.hairCondition.scalpCondition, language)}*`,
@@ -134,4 +162,12 @@ export function formatAnalysisResponse(
   ].join('\n\n');
 
   return splitMessage(message);
+}
+
+export function formatHaircutReferenceCaption(haircut: Haircut, language: Language, position: number): string {
+  if (language === 'en') {
+    return `Reference ${position}: *${haircut.nameEn}*\n${haircut.descriptionEn}`;
+  }
+
+  return `Referencia ${position}: *${haircut.name}*\n${haircut.description}`;
 }
