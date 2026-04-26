@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { ActionSheetIOS, Alert, Platform, Pressable, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { colors } from '@/constants/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
 import { PromptCounter } from '@/components/ui/PromptCounter';
+import { colors } from '@/constants/colors';
+import { Fonts } from '@/constants/tokens';
 
 interface ChatInputProps {
   promptLabel: string;
@@ -17,6 +19,7 @@ interface ChatInputProps {
 
 export function ChatInput({ promptLabel, blocked, onSendText, onImagePicked, onUpgrade }: ChatInputProps) {
   const [text, setText] = useState('');
+  const insets = useSafeAreaInsets();
 
   const openGallery = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -81,32 +84,51 @@ export function ChatInput({ promptLabel, blocked, onSendText, onImagePicked, onU
       return;
     }
 
-    onSendText(value);
+    void onSendText(value);
     setText('');
   };
 
   return (
-    <View className="gap-2 border-t border-bmGold/10 bg-bmBlack px-4 pb-3 pt-2">
+    <View
+      className="gap-2 border-t border-bmGold/10 bg-bmBlack px-4 pt-3"
+      style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+    >
       <PromptCounter label={promptLabel} blocked={blocked} />
       {blocked ? (
         <Button title="Upgrade para PLUS" onPress={onUpgrade} />
       ) : (
-        <View className="min-h-14 flex-row items-center gap-2 rounded-lg border border-bmGold/20 bg-bmDark px-2">
-          <Pressable accessibilityRole="button" className="h-10 w-10 items-center justify-center" onPress={openCameraChoice}>
-            <Camera size={22} color={colors.gold} />
+        <View className="min-h-[52px] flex-row items-center gap-2 rounded-lg border border-bmGold/20 bg-bmDark px-2">
+          <Pressable
+            accessibilityLabel="Abrir camera"
+            accessibilityRole="button"
+            className="h-11 w-11 items-center justify-center rounded bg-bmGold"
+            onPress={openCameraChoice}
+          >
+            <Camera size={22} color={colors.white} />
           </Pressable>
-          <Pressable accessibilityRole="button" className="h-10 w-10 items-center justify-center" onPress={openGallery}>
-            <ImageIcon size={21} color={colors.whiteDim} />
+          <Pressable
+            accessibilityLabel="Escolher foto da galeria"
+            accessibilityRole="button"
+            className="h-11 w-11 items-center justify-center"
+            onPress={openGallery}
+          >
+            <ImageIcon size={21} color={colors.gold} />
           </Pressable>
           <TextInput
             value={text}
             onChangeText={setText}
             placeholder="Envia uma foto ou faz uma pergunta..."
             placeholderTextColor={colors.whiteDim}
-            className="min-h-12 flex-1 text-base text-bmWhite"
+            className="min-h-12 flex-1 text-[15px] text-bmWhite"
+            style={{ fontFamily: Fonts.body }}
             multiline
           />
-          <Pressable accessibilityRole="button" className="h-10 w-10 items-center justify-center" onPress={send}>
+          <Pressable
+            accessibilityLabel="Enviar mensagem"
+            accessibilityRole="button"
+            className="h-11 w-11 items-center justify-center"
+            onPress={send}
+          >
             <Send size={21} color={text.trim() ? colors.gold : colors.whiteDim} />
           </Pressable>
         </View>

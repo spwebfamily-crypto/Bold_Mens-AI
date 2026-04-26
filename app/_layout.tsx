@@ -1,19 +1,40 @@
 import '../global.css';
+import {
+  Poppins_400Regular,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  useFonts,
+} from '@expo-google-fonts/poppins';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { Stack } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { Colors } from '@/constants/tokens';
 import { useAuth } from '@/hooks/useAuth';
+
+void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const queryClient = useMemo(() => new QueryClient(), []);
   const { bootstrap } = useAuth();
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+  });
 
   useEffect(() => {
     void bootstrap();
   }, [bootstrap]);
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      void SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
 
   useEffect(() => {
     if (Constants.appOwnership === 'expo') {
@@ -33,6 +54,10 @@ export default function RootLayout() {
     });
   }, []);
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
@@ -40,7 +65,7 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: '#0A0A0A' },
+            contentStyle: { backgroundColor: Colors.background },
           }}
         >
           <Stack.Screen name="index" />

@@ -6,7 +6,7 @@ BoldMens AI e uma aplicacao mobile iOS construida com Expo e React Native para a
 
 - App mobile com Expo Router, NativeWind, Zustand e TanStack Query.
 - Backend Express com TypeScript, MongoDB, Redis, JWT e middlewares de seguranca.
-- Analise de imagem com Anthropic Vision e streaming de resposta via Server-Sent Events.
+- Analise real de imagem com OpenAI Vision e streaming de resposta via Server-Sent Events.
 - Upload e retencao de imagens com Cloudinary.
 - Autenticacao por email/password e Sign in with Apple.
 - Subscricoes PLUS com RevenueCat e webhook de sincronizacao.
@@ -36,7 +36,8 @@ BoldMens AI e uma aplicacao mobile iOS construida com Expo e React Native para a
 - Redis + ioredis
 - JWT + refresh tokens
 - Zod
-- Anthropic SDK
+- OpenAI Responses API para analise de selfie
+- Anthropic SDK para tendencias opcionais
 - Cloudinary
 - RevenueCat
 - Helmet, CORS, Compression e rate limiting
@@ -74,7 +75,8 @@ BoldMens AI e uma aplicacao mobile iOS construida com Expo e React Native para a
 - Expo CLI via `npx expo`
 - MongoDB disponivel localmente ou em cloud
 - Redis disponivel localmente ou em cloud
-- Conta Anthropic para analise real de imagem
+- Conta OpenAI para analise real de imagem
+- Conta Anthropic opcional para tendencias geradas por IA
 - Conta Cloudinary para upload de imagens
 - Conta RevenueCat para subscricoes iOS
 - Xcode e simulador iOS para execucao nativa
@@ -96,7 +98,8 @@ cp .env.example .env
 3. Preencha as variaveis necessarias:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-5.4-mini
 MONGODB_URI=mongodb+srv://...
 REDIS_URL=redis://...
 JWT_SECRET=replace-with-strong-secret
@@ -222,7 +225,7 @@ O limite diario e calculado por timezone do utilizador e pode ser ajustado por `
 2. A imagem e comprimida no mobile antes do envio.
 3. O backend valida autenticacao e limite do plano.
 4. A imagem e enviada para Cloudinary.
-5. A selfie e analisada com Anthropic Vision.
+5. A selfie e analisada com OpenAI Vision.
 6. A resposta e transmitida para a app por SSE.
 7. O resultado estruturado e guardado no MongoDB.
 8. O historico fica disponivel conforme a retencao do plano.
@@ -253,7 +256,7 @@ Quando alterar regras de planos, limites ou retencao, valide tambem os testes do
 
 | Servico | Uso |
 | --- | --- |
-| Anthropic | Analise de selfie e geracao de recomendacoes |
+| OpenAI Vision | Analise real de selfie e geracao de recomendacoes |
 | Cloudinary | Upload e armazenamento temporario de imagens |
 | MongoDB | Usuarios, analises e uso diario |
 | Redis | Infra de cache/limites quando configurada |
@@ -262,7 +265,7 @@ Quando alterar regras de planos, limites ou retencao, valide tambem os testes do
 
 ## Notas de Desenvolvimento
 
-- Sem `ANTHROPIC_API_KEY`, o backend usa uma analise mock para desenvolvimento local.
+- Sem `OPENAI_API_KEY`, o backend recusa a analise em vez de devolver recomendacoes fixas. Para testes locais, define `ALLOW_MOCK_ANALYSIS=true` fora de producao.
 - O produto PLUS esperado no app e `com.boldmens.plus.monthly`.
 - O bundle identifier iOS configurado e `co.boldmens.ai`.
 - A app usa tema escuro e copy em portugues europeu.

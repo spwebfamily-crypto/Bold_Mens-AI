@@ -7,6 +7,7 @@ import { PlanCard } from '@/components/paywall/PlanCard';
 import { Button } from '@/components/ui/Button';
 import { plans } from '@/constants/plans';
 import { colors } from '@/constants/colors';
+import { Fonts } from '@/constants/tokens';
 import { useSubscription } from '@/hooks/useSubscription';
 
 export default function PaywallScreen() {
@@ -38,8 +39,13 @@ export default function PaywallScreen() {
           <View className="h-16 w-16 items-center justify-center rounded-full border border-bmGold bg-bmDark">
             <Scissors size={30} color={colors.gold} />
           </View>
-          <Text className="mt-5 text-center text-3xl font-bold text-bmWhite">BoldMens PLUS</Text>
-          <Text className="mt-2 text-center text-base text-bmDim">Desbloqueia o teu potencial</Text>
+          <Text className="mt-5 text-center text-3xl font-bold text-bmWhite" style={{ fontFamily: Fonts.headingBold }}>
+            BoldMens PLUS
+          </Text>
+          <View className="mt-3 h-px w-16 bg-bmGold" />
+          <Text className="mt-3 text-center text-base text-bmDim" style={{ fontFamily: Fonts.body }}>
+            Desbloqueia o teu potencial
+          </Text>
         </View>
 
         <View className="mt-8">
@@ -53,7 +59,9 @@ export default function PaywallScreen() {
         <View className="mt-5 gap-3">
           <Button title="Restaurar compra" variant="secondary" onPress={restorePurchase} />
           <Pressable onPress={() => router.back()}>
-            <Text className="text-center text-sm font-semibold text-bmGold">Continuar gratis</Text>
+            <Text className="text-center text-sm font-semibold text-bmDim" style={{ fontFamily: Fonts.bodySemiBold }}>
+              Continuar gratis
+            </Text>
           </Pressable>
         </View>
       </ScrollView>

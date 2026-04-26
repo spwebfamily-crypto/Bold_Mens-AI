@@ -48,10 +48,12 @@ export async function createAnalysis(req: Request, res: Response) {
       imageUrl,
       imageDeleteAt: getImageDeleteAt(),
       faceShape: structured.faceShape,
+      faceAnalysis: structured.faceAnalysis,
       hairType: structured.hairType,
       hairCondition: structured.hairCondition,
       recommendations: structured.recommendations,
       trends: structured.trends,
+      references: structured.references,
       chatMessages: [
         {
           role: 'user',

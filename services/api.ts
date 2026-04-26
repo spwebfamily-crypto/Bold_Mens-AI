@@ -4,8 +4,32 @@ import { clearSession, readSession, saveSession } from './session';
 import { useAuthStore } from '@/stores/authStore';
 import type { AuthResponse } from '@/types';
 
-export const API_URL =
-  String(Constants.expoConfig?.extra?.apiUrl ?? process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api');
+function inferLanApiUrl() {
+  const hostUri =
+    Constants.expoConfig?.hostUri ??
+    (Constants as any).manifest2?.extra?.expoClient?.hostUri ??
+    (Constants as any).manifest?.debuggerHost;
+  const host = typeof hostUri === 'string' ? hostUri.split(':')[0] : '';
+
+  if (!host || host === 'localhost' || host === '127.0.0.1') {
+    return null;
+  }
+
+  return `http://${host}:3000/api`;
+}
+
+function resolveApiUrl() {
+  const configured = String(Constants.expoConfig?.extra?.apiUrl ?? process.env.EXPO_PUBLIC_API_URL ?? '');
+  const fallback = configured || 'http://localhost:3000/api';
+
+  if (fallback.includes('localhost') || fallback.includes('127.0.0.1')) {
+    return inferLanApiUrl() ?? fallback;
+  }
+
+  return fallback;
+}
+
+export const API_URL = resolveApiUrl();
 
 export const api = axios.create({
   baseURL: API_URL,

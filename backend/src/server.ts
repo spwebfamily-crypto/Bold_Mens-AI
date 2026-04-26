@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { globalRateLimiter } from './middleware/rateLimiter.js';
 import { analysisRouter } from './routes/analysis.js';
 import { authRouter } from './routes/auth.js';
+import { chatRouter } from './routes/chat.js';
 import { subscriptionRouter } from './routes/subscription.js';
 import { trendsRouter } from './routes/trends.js';
 
@@ -37,13 +38,14 @@ app.get('/health', (_req, res) => {
   res.json({
     ok: true,
     service: 'boldmens-ai-api',
-    model: 'claude-sonnet-4-20250514',
+    model: env.openaiModel,
     date: new Date().toISOString(),
   });
 });
 
 app.use('/api/auth', authRouter);
 app.use('/api/analysis', analysisRouter);
+app.use('/api/chat', chatRouter);
 app.use('/api/subscription', subscriptionRouter);
 app.use('/api/trends', trendsRouter);
 app.use(errorHandler);

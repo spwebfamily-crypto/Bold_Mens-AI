@@ -1,9 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk';
 import type { Plan, StructuredAnalysis } from '../types/domain.js';
 import { env } from '../config/env.js';
 import { buildDefaultStructuredAnalysis } from './recommendation.service.js';
+import { analyzeSelfieWithOpenAI } from './openai.service.js';
 
-export const ANTHROPIC_VISION_MODEL = 'claude-sonnet-4-20250514';
+export const OPENAI_VISION_MODEL = env.openaiModel;
 
 interface AnalyzeSelfieInput {
   imageBase64: string;
@@ -16,7 +16,7 @@ async function streamMockAnalysis(plan: Plan, onText: (chunk: string) => void) {
   const chunks = [
     'Analisei a selfie e foquei-me no formato do rosto, textura do cabelo e potencial de manutencao. ',
     'A melhor direcao e um corte com laterais limpas e topo com textura natural. ',
-    'Para ti, o Fade Medio com Textura e a opcao mais equilibrada: moderno, versatil e facil de ajustar ao dia a dia.',
+    'Inclui tambem referencias visuais da BoldMens para mostrares ao barbeiro e alinhar o acabamento.',
   ];
 
   for (const chunk of chunks) {
@@ -26,57 +26,54 @@ async function streamMockAnalysis(plan: Plan, onText: (chunk: string) => void) {
   return buildDefaultStructuredAnalysis(plan);
 }
 
-export async function analyzeSelfie(input: AnalyzeSelfieInput): Promise<StructuredAnalysis> {
-  if (!env.anthropicApiKey) {
-    return streamMockAnalysis(input.plan, input.onText);
-  }
-
-  const anthropic = new Anthropic({ apiKey: env.anthropicApiKey });
-  const stream = await anthropic.messages.create({
-    model: ANTHROPIC_VISION_MODEL,
-    max_tokens: 1600,
-    temperature: 0.3,
-    stream: true,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: input.mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-              data: input.imageBase64,
-            },
-          },
-          {
-            type: 'text',
-            text:
-              'Analisa esta selfie para uma app masculina de cortes de cabelo. Responde em portugues europeu, em tom direto e premium, com 3 a 5 frases. Considera formato do rosto, tipo/condicao do cabelo, corte recomendado, manutencao, produtos e tendencias atuais. Nao menciones incertezas tecnicas.',
-          },
-        ],
-      },
-    ],
-  });
-
-  let streamedText = '';
-  for await (const event of stream) {
-    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-      streamedText += event.delta.text;
-      input.onText(event.delta.text);
-    }
-  }
-
-  return {
-    ...buildDefaultStructuredAnalysis(input.plan),
-    recommendations: {
-      ...buildDefaultStructuredAnalysis(input.plan).recommendations,
-      haircut: {
-        ...buildDefaultStructuredAnalysis(input.plan).recommendations.haircut,
-        reason:
-          streamedText.trim() ||
-          buildDefaultStructuredAnalysis(input.plan).recommendations.haircut.reason,
-      },
+function createAnalysisUnavailableError(message: string, cause?: unknown) {
+  const error = Object.assign(
+    new Error(message),
+    {
+      code: 'AI_ANALYSIS_UNAVAILABLE',
+      status: 503,
+      cause,
     },
-  };
+  );
+
+  return error;
+}
+
+function streamSummary(summary: string, onText: (chunk: string) => void) {
+  const chunks = summary.match(/[^.!?]+[.!?]\s*/g) ?? [summary];
+  for (const chunk of chunks) {
+    onText(chunk);
+  }
+}
+
+export async function analyzeSelfie(input: AnalyzeSelfieInput): Promise<StructuredAnalysis> {
+  if (!env.openaiApiKey) {
+    if (env.allowMockAnalysis && env.nodeEnv !== 'production') {
+      return streamMockAnalysis(input.plan, input.onText);
+    }
+
+    throw createAnalysisUnavailableError(
+      'Analise real indisponivel. Configura OPENAI_API_KEY para analisar a selfie sem usar recomendacoes fixas.',
+    );
+  }
+
+  try {
+    const { summary, structured } = await analyzeSelfieWithOpenAI({
+      imageBase64: input.imageBase64,
+      mimeType: input.mimeType,
+      plan: input.plan,
+    });
+    streamSummary(summary, input.onText);
+    return structured;
+  } catch (error) {
+    console.warn('OpenAI selfie analysis failed.', error);
+    if (env.allowMockAnalysis && env.nodeEnv !== 'production') {
+      return streamMockAnalysis(input.plan, input.onText);
+    }
+
+    throw createAnalysisUnavailableError(
+      'A IA real nao devolveu uma analise personalizada valida. Verifica OPENAI_MODEL, acesso ao modelo com visao e tenta novamente com uma selfie bem iluminada.',
+      error,
+    );
+  }
 }

@@ -36,6 +36,11 @@ export function useAnalysis() {
             });
           },
         });
+      } catch {
+        chat.updateMessage(assistantId, {
+          content: 'Nao consegui analisar esta foto agora. Confirma a ligacao e tenta novamente com uma selfie bem iluminada.',
+          isStreaming: false,
+        });
       } finally {
         setAnalyzing(false);
         setStatus(null);

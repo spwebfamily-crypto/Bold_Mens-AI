@@ -55,6 +55,10 @@ function handleEvent(event: AnalysisEvent, callbacks: StartAnalysisCallbacks) {
 
 export async function startAnalysis(imageUri: string, callbacks: StartAnalysisCallbacks) {
   const session = await readSession();
+  if (!session.accessToken) {
+    throw new Error('AUTH_REQUIRED');
+  }
+
   const formData = new FormData();
   const extension = imageUri.split('.').pop()?.toLowerCase() ?? 'jpg';
 

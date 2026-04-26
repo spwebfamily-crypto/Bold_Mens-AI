@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import { api } from './api';
 import { clearSession, readSession, saveSession } from './session';
 import type { AuthResponse, User } from '@/types';
@@ -49,10 +50,11 @@ export async function bootstrapSession() {
   }
 
   const response = await api.get<{ user: User }>('/auth/me');
+  const refreshedSession = await readSession();
   return {
     user: response.data.user,
-    accessToken: session.accessToken,
-    refreshToken: session.refreshToken ?? '',
+    accessToken: refreshedSession.accessToken ?? session.accessToken,
+    refreshToken: refreshedSession.refreshToken ?? session.refreshToken ?? '',
   };
 }
 
@@ -62,4 +64,29 @@ export async function logout() {
   } finally {
     await clearSession();
   }
+}
+
+export function getAuthErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof AxiosError) {
+    const code = error.response?.data?.error;
+    const issues = error.response?.data?.issues as { path?: string; message?: string }[] | undefined;
+
+    if (code === 'EMAIL_ALREADY_USED') {
+      return 'Este email ja esta registado. Entra na tua conta ou usa outro email.';
+    }
+
+    if (code === 'INVALID_CREDENTIALS') {
+      return 'Email ou password incorretos.';
+    }
+
+    if (code === 'VALIDATION_ERROR' && issues?.length) {
+      const passwordIssue = issues.find((issue) => issue.path === 'password');
+      if (passwordIssue) {
+        return 'A password deve ter pelo menos 8 caracteres.';
+      }
+      return 'Confirma o nome, email e password antes de continuar.';
+    }
+  }
+
+  return fallback;
 }

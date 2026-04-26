@@ -1,8 +1,10 @@
 import { Schema, model, Types, type HydratedDocument } from 'mongoose';
 import type {
   ChatMessage,
+  FaceAnalysis,
   HairCondition,
   HairType,
+  ReferenceImage,
   Recommendations,
   Trend,
 } from '../types/domain.js';
@@ -12,10 +14,12 @@ export interface IAnalysis {
   imageUrl: string;
   imageDeleteAt: Date;
   faceShape: string;
+  faceAnalysis?: FaceAnalysis;
   hairType: HairType;
   hairCondition: HairCondition;
   recommendations: Recommendations;
   trends: Trend[];
+  references: ReferenceImage[];
   chatMessages: ChatMessage[];
   createdAt: Date;
   updatedAt: Date;
@@ -65,6 +69,10 @@ const AnalysisSchema = new Schema<IAnalysis>(
       type: String,
       required: true,
     },
+    faceAnalysis: {
+      type: Schema.Types.Mixed,
+      default: undefined,
+    } as any,
     hairType: {
       type: String,
       required: true,
@@ -78,6 +86,10 @@ const AnalysisSchema = new Schema<IAnalysis>(
       required: true,
     } as any,
     trends: {
+      type: [Schema.Types.Mixed],
+      default: [],
+    } as any,
+    references: {
       type: [Schema.Types.Mixed],
       default: [],
     } as any,

@@ -5,6 +5,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TrendCard } from '@/components/analysis/TrendCard';
 import { Button } from '@/components/ui/Button';
+import { Fonts } from '@/constants/tokens';
 import { fetchTrends } from '@/services/trends.service';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -21,8 +22,13 @@ export default function TrendsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bmBlack" edges={['top']}>
       <ScrollView contentContainerClassName="px-5 py-5">
-        <Text className="text-2xl font-bold text-bmWhite">Tendencias Primavera 2026</Text>
-        <Text className="mt-1 text-sm text-bmDim">Atualizado semanalmente pela nossa IA</Text>
+        <Text className="text-3xl font-bold text-bmWhite" style={{ fontFamily: Fonts.headingBold }}>
+          Tendencias
+        </Text>
+        <Text className="mt-1 text-sm text-bmDim" style={{ fontFamily: Fonts.caption }}>
+          Atualizado semanalmente pela IA
+        </Text>
+        <View className="mt-4 h-px w-12 bg-bmGold" />
         <View className="mt-5 gap-3">
           {data?.trends.map((trend) => <TrendCard key={trend.id} trend={trend} />)}
           {plan === 'free'
@@ -39,6 +45,7 @@ export default function TrendsScreen() {
                         idealHairTypes: ['wavy'],
                         maintenance: 'medium',
                         source: 'BoldMens AI',
+                        mediaUrl: 'https://boldmens.co/galeria/corte2.jpg',
                       }}
                     />
                   </BlurView>

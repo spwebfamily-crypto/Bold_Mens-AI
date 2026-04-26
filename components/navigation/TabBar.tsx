@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 import { colors } from '@/constants/colors';
+import { Fonts } from '@/constants/tokens';
 
 export function TabBar({ state, descriptors, navigation }: any) {
   return (
@@ -10,14 +11,20 @@ export function TabBar({ state, descriptors, navigation }: any) {
 
         return (
           <Pressable
+            accessibilityLabel={options.title ?? route.name}
+            accessibilityRole="button"
             key={route.key}
             className="h-12 flex-1 items-center justify-center"
             onPress={() => navigation.navigate(route.name)}
           >
             {options.tabBarIcon?.({ color: focused ? colors.gold : colors.whiteDim, size: 22, focused })}
-            <Text className={`mt-1 text-[11px] ${focused ? 'text-bmGold' : 'text-bmDim'}`}>
+            <Text
+              className={`mt-1 text-[11px] ${focused ? 'text-bmGold' : 'text-bmDim'}`}
+              style={{ fontFamily: focused ? Fonts.bodySemiBold : Fonts.caption }}
+            >
               {options.title ?? route.name}
             </Text>
+            {focused ? <View className="mt-1 h-1 w-1 rounded-full bg-bmGold" /> : <View className="mt-1 h-1 w-1" />}
           </Pressable>
         );
       })}

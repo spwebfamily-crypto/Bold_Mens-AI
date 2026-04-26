@@ -6,14 +6,14 @@ import { verifyAppleIdentityToken } from '../services/apple.service.js';
 import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/tokens.js';
 
 const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
+  name: z.string().trim().min(2),
+  email: z.string().trim().email().transform((email) => email.toLowerCase()),
   password: z.string().min(8),
   timezone: z.string().optional(),
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().email().transform((email) => email.toLowerCase()),
   password: z.string().min(1),
   timezone: z.string().optional(),
 });
@@ -24,8 +24,8 @@ const refreshSchema = z.object({
 
 const appleSchema = z.object({
   identityToken: z.string().min(16),
-  email: z.string().email().optional(),
-  name: z.string().min(2).optional(),
+  email: z.string().trim().email().transform((email) => email.toLowerCase()).optional(),
+  name: z.string().trim().min(2).optional(),
   timezone: z.string().optional(),
 });
 
@@ -57,7 +57,7 @@ async function issueAuth(user: UserDocument) {
 
 export async function register(req: Request, res: Response) {
   const data = registerSchema.parse(req.body);
-  const existing = await User.findOne({ email: data.email.toLowerCase() });
+  const existing = await User.findOne({ email: data.email });
 
   if (existing) {
     return res.status(409).json({ error: 'EMAIL_ALREADY_USED' });
@@ -79,7 +79,7 @@ export async function register(req: Request, res: Response) {
 
 export async function login(req: Request, res: Response) {
   const data = loginSchema.parse(req.body);
-  const user = await User.findOne({ email: data.email.toLowerCase() }).select('+passwordHash +refreshTokenHash');
+  const user = await User.findOne({ email: data.email }).select('+passwordHash +refreshTokenHash');
 
   if (!user) {
     return res.status(401).json({ error: 'INVALID_CREDENTIALS' });
@@ -118,7 +118,7 @@ export async function signInWithApple(req: Request, res: Response) {
     return res.status(400).json({ error: 'APPLE_EMAIL_REQUIRED' });
   }
 
-  let user = await User.findOne({ email: email.toLowerCase() });
+  let user = await User.findOne({ email });
 
   if (!user) {
     user = new User({

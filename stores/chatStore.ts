@@ -6,6 +6,7 @@ interface ChatState {
   promptUsage: PromptUsage;
   addMessage: (message: Omit<ChatMessage, 'id' | 'createdAt'> & { id?: string }) => string;
   appendToMessage: (id: string, text: string) => void;
+  updateMessage: (id: string, patch: Partial<ChatMessage>) => void;
   completeAnalysisMessage: (id: string, result: AnalysisResult) => void;
   setPromptUsage: (usage: PromptUsage) => void;
   clearChat: () => void;
@@ -48,10 +49,14 @@ export const useChatStore = create<ChatState>((set) => ({
         message.id === id ? { ...message, content: `${message.content}${text}` } : message,
       ),
     })),
+  updateMessage: (id, patch) =>
+    set((state) => ({
+      messages: state.messages.map((message) => (message.id === id ? { ...message, ...patch } : message)),
+    })),
   completeAnalysisMessage: (id, result) =>
     set((state) => ({
       messages: state.messages.map((message) =>
-        message.id === id ? { ...message, result, isStreaming: false } : message,
+        message.id === id ? { ...message, result, references: result.references, isStreaming: false } : message,
       ),
     })),
   setPromptUsage: (usage) => set({ promptUsage: usage }),

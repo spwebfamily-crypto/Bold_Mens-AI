@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
+import { ActivityIndicator, Pressable, Text, type PressableProps, StyleSheet } from 'react-native';
 import { colors } from '@/constants/colors';
+import { Fonts, Layout, Radius } from '@/constants/tokens';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -19,7 +20,7 @@ const variantClass: Record<ButtonVariant, string> = {
 };
 
 const textClass: Record<ButtonVariant, string> = {
-  primary: 'text-bmBlack',
+  primary: 'text-bmWhite',
   secondary: 'text-bmWhite',
   ghost: 'text-bmGold',
   danger: 'text-bmWhite',
@@ -31,14 +32,36 @@ export function Button({ title, variant = 'primary', icon, loading, disabled, cl
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={props.accessibilityLabel ?? title}
       disabled={isDisabled}
-      className={`min-h-12 flex-row items-center justify-center gap-2 rounded-lg px-4 ${variantClass[variant]} ${
-        isDisabled ? 'opacity-50' : 'opacity-100'
-      } ${className ?? ''}`}
+      className={`flex-row items-center justify-center gap-2 rounded ${variantClass[variant]} ${className ?? ''}`}
+      style={({ pressed }) => [
+        styles.button,
+        {
+          opacity: isDisabled ? 0.5 : pressed ? 0.82 : 1,
+          transform: [{ scale: pressed && !isDisabled ? 0.98 : 1 }],
+        },
+      ]}
       {...props}
     >
-      {loading ? <ActivityIndicator color={variant === 'primary' ? colors.black : colors.white} /> : icon}
-      <Text className={`text-base font-semibold ${textClass[variant]}`}>{title}</Text>
+      <>
+        {loading ? <ActivityIndicator color={variant === 'primary' ? colors.white : colors.white} /> : icon}
+        <Text className={`text-sm font-bold uppercase tracking-widest ${textClass[variant]}`} style={styles.text}>
+          {title}
+        </Text>
+      </>
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    minHeight: Layout.buttonHeight,
+    borderRadius: Radius.sm,
+    paddingHorizontal: 16,
+  },
+  text: {
+    fontFamily: Fonts.bodyBold,
+    letterSpacing: 1.5,
+  },
+});

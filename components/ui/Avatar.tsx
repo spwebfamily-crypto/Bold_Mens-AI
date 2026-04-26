@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+import { Fonts } from '@/constants/tokens';
 
 interface AvatarProps {
   name?: string;
@@ -21,8 +22,10 @@ export function Avatar({ name, size = 'md' }: AvatarProps) {
   const initial = name?.trim().charAt(0).toUpperCase() || 'B';
 
   return (
-    <View className={`${sizeClass[size]} items-center justify-center rounded-full bg-bmGold`}>
-      <Text className={`${textClass[size]} font-bold text-bmBlack`}>{initial}</Text>
+    <View className={`${sizeClass[size]} items-center justify-center rounded-full border border-bmGold bg-bmGold/10`}>
+      <Text className={`${textClass[size]} font-bold text-bmGold`} style={{ fontFamily: Fonts.headingBold }}>
+        {initial}
+      </Text>
     </View>
   );
 }

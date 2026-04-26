@@ -6,6 +6,18 @@ export type HairCondition = 'healthy' | 'dry' | 'oily' | 'damaged' | 'dandruff' 
 
 export type MaintenanceLevel = 'low' | 'medium' | 'high';
 
+export type AnalysisConfidence = 'low' | 'medium' | 'high';
+
+export interface FaceAnalysis {
+  confidence: AnalysisConfidence;
+  proportions: string;
+  forehead: string;
+  cheekbones: string;
+  jawline: string;
+  facialHair: string;
+  visagismNotes: string[];
+}
+
 export interface User {
   id: string;
   email: string;
@@ -22,6 +34,14 @@ export interface ProductRecommendation {
   category: string;
   reason: string;
   priority: number;
+}
+
+export interface ReferenceImage {
+  title: string;
+  imageUrl: string;
+  sourceUrl: string;
+  sourceName: string;
+  description: string;
 }
 
 export interface HaircutRecommendation {
@@ -55,10 +75,12 @@ export interface AnalysisResult {
   analysisId: string;
   imageUrl: string;
   faceShape: string;
+  faceAnalysis?: FaceAnalysis;
   hairType: HairType;
   hairCondition: HairCondition;
   recommendations: Recommendations;
   trends: Trend[];
+  references?: ReferenceImage[];
 }
 
 export interface ChatMessage {
@@ -66,6 +88,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   imageUri?: string;
+  references?: ReferenceImage[];
   result?: AnalysisResult;
   isStreaming?: boolean;
   createdAt: string;
@@ -81,4 +104,9 @@ export interface PromptUsage {
   used: number;
   limit: number;
   resetAt?: string;
+}
+
+export interface ChatAssistantResponse {
+  answer: string;
+  references: ReferenceImage[];
 }

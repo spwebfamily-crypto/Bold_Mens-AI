@@ -28,9 +28,14 @@ export function useAuth() {
   const login = useCallback(
     async (input: { email: string; password: string }) => {
       setStatus('loading');
-      const response = await authService.login(input);
-      setAuth(response);
-      return response;
+      try {
+        const response = await authService.login(input);
+        setAuth(response);
+        return response;
+      } catch (error) {
+        setStatus('anonymous');
+        throw error;
+      }
     },
     [setAuth, setStatus],
   );
@@ -38,18 +43,28 @@ export function useAuth() {
   const register = useCallback(
     async (input: { name: string; email: string; password: string }) => {
       setStatus('loading');
-      const response = await authService.register(input);
-      setAuth(response);
-      return response;
+      try {
+        const response = await authService.register(input);
+        setAuth(response);
+        return response;
+      } catch (error) {
+        setStatus('anonymous');
+        throw error;
+      }
     },
     [setAuth, setStatus],
   );
 
   const signInWithApple = useCallback(async () => {
     setStatus('loading');
-    const response = await authService.signInWithApple();
-    setAuth(response);
-    return response;
+    try {
+      const response = await authService.signInWithApple();
+      setAuth(response);
+      return response;
+    } catch (error) {
+      setStatus('anonymous');
+      throw error;
+    }
   }, [setAuth, setStatus]);
 
   const logout = useCallback(async () => {

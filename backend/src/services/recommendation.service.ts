@@ -1,6 +1,35 @@
-import type { Plan, StructuredAnalysis, Trend } from '../types/domain.js';
+import type { Plan, ReferenceImage, StructuredAnalysis, Trend } from '../types/domain.js';
 
 export const TREND_SEASON = 'Primavera/Verao 2026';
+export const BOLDMENS_SITE_URL = 'https://boldmens.co';
+
+export const referenceLibrary: ReferenceImage[] = [
+  {
+    title: 'Referencia de corte em cadeira',
+    imageUrl: `${BOLDMENS_SITE_URL}/galeria/corte.jpg`,
+    sourceUrl: `${BOLDMENS_SITE_URL}/#galeria`,
+    sourceName: 'BoldMens Galeria',
+    description: 'Foto real do ambiente BoldMens para visualizar acabamento e proporcao do corte.',
+  },
+  {
+    title: 'Detalhe de corte e textura',
+    imageUrl: `${BOLDMENS_SITE_URL}/galeria/corte2.jpg`,
+    sourceUrl: `${BOLDMENS_SITE_URL}/#galeria`,
+    sourceName: 'BoldMens Galeria',
+    description: 'Referencia visual para textura no topo e limpeza nas laterais.',
+  },
+  {
+    title: 'Produtos de finalizacao',
+    imageUrl: `${BOLDMENS_SITE_URL}/galeria/detalhesprodutos.jpg`,
+    sourceUrl: `${BOLDMENS_SITE_URL}/#galeria`,
+    sourceName: 'BoldMens Galeria',
+    description: 'Referencia para rotina de produto e acabamento matte/natural.',
+  },
+];
+
+export function defaultReferences(limit = 3) {
+  return referenceLibrary.slice(0, limit);
+}
 
 export const staticTrends: Trend[] = [
   {
@@ -11,6 +40,7 @@ export const staticTrends: Trend[] = [
     idealHairTypes: ['straight', 'wavy'],
     maintenance: 'low',
     source: 'BoldMens AI trend model',
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte2.jpg`,
   },
   {
     id: 'mid-fade-texture-2026',
@@ -20,6 +50,7 @@ export const staticTrends: Trend[] = [
     idealHairTypes: ['wavy', 'curly'],
     maintenance: 'medium',
     source: 'BoldMens AI trend model',
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte.jpg`,
   },
   {
     id: 'modern-side-part-2026',
@@ -29,6 +60,7 @@ export const staticTrends: Trend[] = [
     idealHairTypes: ['straight', 'wavy'],
     maintenance: 'medium',
     source: 'BoldMens AI trend model',
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte.jpg`,
   },
   {
     id: 'low-taper-curls-2026',
@@ -39,6 +71,7 @@ export const staticTrends: Trend[] = [
     maintenance: 'medium',
     source: 'BoldMens AI trend model',
     plusOnly: true,
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte2.jpg`,
   },
   {
     id: 'flow-cut-2026',
@@ -49,6 +82,7 @@ export const staticTrends: Trend[] = [
     maintenance: 'medium',
     source: 'BoldMens AI trend model',
     plusOnly: true,
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte2.jpg`,
   },
   {
     id: 'buzz-fade-2026',
@@ -59,6 +93,7 @@ export const staticTrends: Trend[] = [
     maintenance: 'low',
     source: 'BoldMens AI trend model',
     plusOnly: true,
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte.jpg`,
   },
   {
     id: 'soft-mullet-2026',
@@ -69,6 +104,7 @@ export const staticTrends: Trend[] = [
     maintenance: 'high',
     source: 'BoldMens AI trend model',
     plusOnly: true,
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte2.jpg`,
   },
   {
     id: 'ivy-league-2026',
@@ -79,6 +115,7 @@ export const staticTrends: Trend[] = [
     maintenance: 'medium',
     source: 'BoldMens AI trend model',
     plusOnly: true,
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte.jpg`,
   },
   {
     id: 'curly-fringe-2026',
@@ -89,6 +126,7 @@ export const staticTrends: Trend[] = [
     maintenance: 'medium',
     source: 'BoldMens AI trend model',
     plusOnly: true,
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte2.jpg`,
   },
   {
     id: 'slick-back-taper-2026',
@@ -99,6 +137,7 @@ export const staticTrends: Trend[] = [
     maintenance: 'high',
     source: 'BoldMens AI trend model',
     plusOnly: true,
+    mediaUrl: `${BOLDMENS_SITE_URL}/galeria/corte.jpg`,
   },
 ];
 
@@ -111,6 +150,19 @@ export function buildDefaultStructuredAnalysis(plan: Plan): StructuredAnalysis {
 
   return {
     faceShape: 'oval',
+    faceAnalysis: {
+      confidence: 'low',
+      proportions: 'Leitura demonstrativa sem avaliacao real da selfie.',
+      forehead: 'Nao avaliado no modo mock.',
+      cheekbones: 'Nao avaliado no modo mock.',
+      jawline: 'Nao avaliado no modo mock.',
+      facialHair: 'Nao avaliado no modo mock.',
+      visagismNotes: [
+        'Configura OPENAI_API_KEY para uma analise real baseada na imagem.',
+        'O mock deve ser usado apenas em desenvolvimento com ALLOW_MOCK_ANALYSIS=true.',
+        'Este resultado nao deve aparecer em producao.',
+      ],
+    },
     hairType: 'wavy',
     hairCondition: 'healthy',
     recommendations: {
@@ -168,5 +220,6 @@ export function buildDefaultStructuredAnalysis(plan: Plan): StructuredAnalysis {
           : undefined,
     },
     trends,
+    references: defaultReferences(),
   };
 }

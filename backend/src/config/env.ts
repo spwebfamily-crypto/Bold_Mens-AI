@@ -15,6 +15,14 @@ for (const path of candidates) {
 }
 
 const read = (key: string, fallback = '') => process.env[key] ?? fallback;
+const readBoolean = (key: string, fallback = false) => {
+  const value = process.env[key]?.trim().toLowerCase();
+  if (!value) {
+    return fallback;
+  }
+
+  return ['1', 'true', 'yes', 'on'].includes(value);
+};
 const readNumber = (key: string, fallback: number) => {
   const value = Number(process.env[key]);
   return Number.isFinite(value) ? value : fallback;
@@ -32,6 +40,10 @@ export const env = {
     .map((origin) => origin.trim())
     .filter(Boolean),
 
+  openaiApiKey: read('OPENAI_API_KEY'),
+  openaiModel: read('OPENAI_MODEL', 'gpt-5.4-mini'),
+  openaiImageModel: read('OPENAI_IMAGE_MODEL', 'gpt-image-2'),
+  allowMockAnalysis: readBoolean('ALLOW_MOCK_ANALYSIS', false),
   anthropicApiKey: read('ANTHROPIC_API_KEY'),
   mongodbUri: read('MONGODB_URI'),
   redisUrl: read('REDIS_URL'),
