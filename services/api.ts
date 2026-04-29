@@ -20,10 +20,17 @@ function inferLanApiUrl() {
 
 function resolveApiUrl() {
   const configured = String(Constants.expoConfig?.extra?.apiUrl ?? process.env.EXPO_PUBLIC_API_URL ?? '');
-  const fallback = configured || 'http://localhost:3000/api';
+  
+  // Se estivermos em desenvolvimento e no mobile, o IP da LAN é essencial
+  if (__DEV__) {
+    const lanUrl = inferLanApiUrl();
+    if (lanUrl) return lanUrl;
+  }
+
+  const fallback = configured || 'http://192.168.1.9:3000/api';
 
   if (fallback.includes('localhost') || fallback.includes('127.0.0.1')) {
-    return inferLanApiUrl() ?? fallback;
+    return inferLanApiUrl() ?? fallback.replace('localhost', '192.168.1.9');
   }
 
   return fallback;
@@ -80,11 +87,15 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !original?._retry) {
       original._retry = true;
-      const token = await refreshAccessToken();
-
-      if (token) {
-        original.headers.Authorization = `Bearer ${token}`;
-        return api(original);
+      try {
+        const token = await refreshAccessToken();
+        if (token) {
+          original.headers.Authorization = `Bearer ${token}`;
+          return api(original);
+        }
+      } catch (refreshError) {
+        // Falha silenciosa no refresh, limpa e redireciona
+        console.error('[API] Refresh token failed:', refreshError);
       }
     }
 

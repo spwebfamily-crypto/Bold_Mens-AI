@@ -68,23 +68,39 @@ export async function logout() {
 
 export function getAuthErrorMessage(error: unknown, fallback: string) {
   if (error instanceof AxiosError) {
+    if (error.code === 'ECONNABORTED') {
+      return 'O servidor demorou muito a responder. Verifica a tua ligação à internet.';
+    }
+    
+    if (!error.response) {
+      return 'Não foi possível ligar ao servidor. Verifica se estás online.';
+    }
+
     const code = error.response?.data?.error;
     const issues = error.response?.data?.issues as { path?: string; message?: string }[] | undefined;
 
     if (code === 'EMAIL_ALREADY_USED') {
-      return 'Este email ja esta registado. Entra na tua conta ou usa outro email.';
+      return 'Este email já está registado. Tenta entrar na tua conta ou usa outro email.';
     }
 
     if (code === 'INVALID_CREDENTIALS') {
-      return 'Email ou password incorretos.';
+      return 'Email ou password incorretos. Tenta novamente.';
+    }
+
+    if (code === 'USER_NOT_FOUND') {
+      return 'Não encontrámos nenhuma conta com este email.';
     }
 
     if (code === 'VALIDATION_ERROR' && issues?.length) {
       const passwordIssue = issues.find((issue) => issue.path === 'password');
       if (passwordIssue) {
-        return 'A password deve ter pelo menos 8 caracteres.';
+        return 'A password deve ser mais forte (mínimo 8 caracteres).';
       }
-      return 'Confirma o nome, email e password antes de continuar.';
+      return 'Confirma se todos os campos estão preenchidos corretamente.';
+    }
+
+    if (error.response.status === 429) {
+      return 'Demasiadas tentativas. Por favor, aguarda um pouco antes de tentar novamente.';
     }
   }
 

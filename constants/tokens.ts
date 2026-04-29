@@ -1,30 +1,30 @@
 export const Colors = {
-  background: '#0A0A0A',
-  backgroundCard: '#171717',
-  backgroundInput: '#1F1F1F',
-  backgroundMuted: '#262626',
-  border: '#262626',
+  background: '#050505',
+  backgroundCard: '#121212',
+  backgroundInput: '#1C1C1E',
+  backgroundMuted: '#2C2C2E',
+  border: '#3A3A3C',
 
-  accent: '#ff7a00',
-  accentLight: '#ffd9b3',
-  accentDark: '#ea580c',
-  accentAlpha: 'rgba(255, 122, 0, 0.14)',
+  accent: '#D4AF37',
+  accentLight: '#E5C76B',
+  accentDark: '#B8860B',
+  accentAlpha: 'rgba(212, 175, 55, 0.15)',
 
-  textPrimary: '#ffffff',
-  textSecondary: '#d4d4d4',
-  textMuted: '#6b7280',
-  textOnAccent: '#ffffff',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#EBEBF5',
+  textMuted: '#9CA3AF',
+  textOnAccent: '#000000',
 
-  success: '#22C55E',
-  error: '#EF4444',
-  warning: '#F59E0B',
-  info: '#3B82F6',
+  success: '#34C759',
+  error: '#FF3B30',
+  warning: '#FF9500',
+  info: '#0A84FF',
 
-  siteBase: '#ffffff',
-  siteSurface: '#f7f7f7',
-  siteSurfaceLight: '#fff8f1',
-  siteInk: '#1f1f1f',
-  siteOutline: '#ffd4aa',
+  siteBase: '#FFFFFF',
+  siteSurface: '#F2F2F7',
+  siteSurfaceLight: '#FFFFFF',
+  siteInk: '#000000',
+  siteOutline: '#D1D1D6',
 } as const;
 
 export const Fonts = {
@@ -48,10 +48,10 @@ export const Spacing = {
 } as const;
 
 export const Radius = {
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
   full: 9999,
 } as const;
 

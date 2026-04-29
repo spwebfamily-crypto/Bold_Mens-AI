@@ -1,7 +1,8 @@
 import { type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, type PressableProps, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { colors } from '@/constants/colors';
-import { Fonts, Layout, Radius } from '@/constants/tokens';
+import { Fonts, Radius } from '@/constants/tokens';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -14,13 +15,13 @@ interface ButtonProps extends PressableProps {
 
 const variantClass: Record<ButtonVariant, string> = {
   primary: 'bg-bmGold',
-  secondary: 'bg-bmDark border border-bmGold/50',
+  secondary: 'bg-bmDark border border-bmGold/30',
   ghost: 'bg-transparent',
   danger: 'bg-bmError',
 };
 
 const textClass: Record<ButtonVariant, string> = {
-  primary: 'text-bmWhite',
+  primary: 'text-black', // Preto no dourado para melhor leitura
   secondary: 'text-bmWhite',
   ghost: 'text-bmGold',
   danger: 'text-bmWhite',
@@ -29,24 +30,36 @@ const textClass: Record<ButtonVariant, string> = {
 export function Button({ title, variant = 'primary', icon, loading, disabled, className, ...props }: ButtonProps) {
   const isDisabled = disabled || loading;
 
+  const handlePress = (e: any) => {
+    if (!isDisabled) {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      props.onPress?.(e);
+    }
+  };
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={props.accessibilityLabel ?? title}
       disabled={isDisabled}
-      className={`flex-row items-center justify-center gap-2 rounded ${variantClass[variant]} ${className ?? ''}`}
+      className={`flex-row items-center justify-center gap-2 ${variantClass[variant]} ${className ?? ''}`}
       style={({ pressed }) => [
         styles.button,
         {
-          opacity: isDisabled ? 0.5 : pressed ? 0.82 : 1,
-          transform: [{ scale: pressed && !isDisabled ? 0.98 : 1 }],
+          opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1,
+          transform: [{ scale: pressed && !isDisabled ? 0.97 : 1 }],
         },
       ]}
+      onPress={handlePress}
       {...props}
     >
       <>
-        {loading ? <ActivityIndicator color={variant === 'primary' ? colors.white : colors.white} /> : icon}
-        <Text className={`text-sm font-bold uppercase tracking-widest ${textClass[variant]}`} style={styles.text}>
+        {loading ? (
+          <ActivityIndicator color={variant === 'primary' ? '#000000' : colors.white} />
+        ) : (
+          icon
+        )}
+        <Text className={`text-base font-semibold ${textClass[variant]}`} style={styles.text}>
           {title}
         </Text>
       </>
@@ -56,12 +69,12 @@ export function Button({ title, variant = 'primary', icon, loading, disabled, cl
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: Layout.buttonHeight,
-    borderRadius: Radius.sm,
-    paddingHorizontal: 16,
+    minHeight: 52, // Altura padrão Apple
+    borderRadius: Radius.md,
+    paddingHorizontal: 20,
   },
   text: {
-    fontFamily: Fonts.bodyBold,
-    letterSpacing: 1.5,
+    fontFamily: Fonts.bodySemiBold,
+    letterSpacing: -0.3, // Tracking mais fechado estilo SF Pro
   },
 });

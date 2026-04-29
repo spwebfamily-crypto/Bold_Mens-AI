@@ -11,4 +11,5 @@ export async function connectDatabase() {
   await mongoose.connect(env.mongodbUri, {
     autoIndex: env.nodeEnv !== 'production',
   });
+  console.log('Successfully connected to MongoDB.');
 }

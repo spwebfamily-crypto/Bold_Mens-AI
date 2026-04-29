@@ -1,13 +1,13 @@
 export const colors = {
-  black: '#0A0A0A',
-  darkGray: '#171717',
-  gold: '#ff7a00',
-  goldLight: '#ffd9b3',
-  white: '#ffffff',
-  whiteDim: '#6b7280',
-  success: '#22C55E',
-  error: '#EF4444',
-  warning: '#F59E0B',
-  bubbleAI: '#171717',
-  bubbleUser: '#ff7a00',
+  black: '#050505',
+  darkGray: '#121212',
+  gold: '#D4AF37', // Champagne Gold
+  goldLight: '#E5C76B',
+  white: '#FFFFFF',
+  whiteDim: '#9CA3AF',
+  success: '#34C759', // Apple Success Green
+  error: '#FF3B30', // Apple Error Red
+  warning: '#FF9500', // Apple Warning Orange
+  bubbleAI: '#1C1C1E',
+  bubbleUser: '#D4AF37',
 };
