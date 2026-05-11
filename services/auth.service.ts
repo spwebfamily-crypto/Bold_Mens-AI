@@ -49,13 +49,17 @@ export async function bootstrapSession() {
     return null;
   }
 
-  const response = await api.get<{ user: User }>('/auth/me');
-  const refreshedSession = await readSession();
-  return {
-    user: response.data.user,
-    accessToken: refreshedSession.accessToken ?? session.accessToken,
-    refreshToken: refreshedSession.refreshToken ?? session.refreshToken ?? '',
-  };
+  try {
+    const response = await api.get<{ user: User }>('/auth/me');
+    const refreshedSession = await readSession();
+    return {
+      user: response.data.user,
+      accessToken: refreshedSession.accessToken ?? session.accessToken,
+      refreshToken: refreshedSession.refreshToken ?? session.refreshToken ?? '',
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function logout() {

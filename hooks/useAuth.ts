@@ -18,7 +18,8 @@ export function useAuth() {
       if (session) {
         setAuth(session);
       } else {
-        setStatus('anonymous');
+        await authService.logout().catch(() => {});
+        clearAuth();
       }
     } catch {
       clearAuth();
