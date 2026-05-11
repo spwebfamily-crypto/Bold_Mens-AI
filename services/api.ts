@@ -65,13 +65,21 @@ async function refreshAccessToken() {
         return null;
       }
 
-      const response = await axios.post<AuthResponse>(`${API_URL}/auth/refresh`, {
-        refreshToken: session.refreshToken,
-      });
+      try {
+        const response = await axios.post<AuthResponse>(`${API_URL}/auth/refresh`, {
+          refreshToken: session.refreshToken,
+        });
 
-      useAuthStore.getState().setAuth(response.data);
-      await saveSession(response.data.accessToken, response.data.refreshToken);
-      return response.data.accessToken;
+        useAuthStore.getState().setAuth(response.data);
+        await saveSession(response.data.accessToken, response.data.refreshToken);
+        return response.data.accessToken;
+      } catch (error) {
+        console.error('[refreshAccessToken] Error:', error);
+        // Limpa sessão se o refresh falhar
+        await clearSession();
+        useAuthStore.getState().clearAuth();
+        return null;
+      }
     })().finally(() => {
       refreshPromise = null;
     });
@@ -94,7 +102,6 @@ api.interceptors.response.use(
           return api(original);
         }
       } catch (refreshError) {
-        // Falha silenciosa no refresh, limpa e redireciona
         console.error('[API] Refresh token failed:', refreshError);
       }
     }
@@ -102,6 +109,11 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       await clearSession();
       useAuthStore.getState().clearAuth();
+      // Redireciona para tela de login após limpar sessão
+      const router = (await import('expo-router')).router;
+      if (router.canGoBack() || true) {
+        router.replace('/(auth)/login');
+      }
     }
 
     throw error;

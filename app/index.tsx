@@ -18,5 +18,6 @@ export default function Index() {
     return <Redirect href="/(tabs)" />;
   }
 
+  // status === 'anonymous' ou qualquer outro estado
   return <Redirect href="/onboarding" />;
 }

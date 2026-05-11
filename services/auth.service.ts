@@ -5,42 +5,61 @@ import type { AuthResponse, User } from '@/types';
 
 export async function register(input: { name: string; email: string; password: string }) {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const response = await api.post<AuthResponse>('/auth/register', { ...input, timezone });
-  await saveSession(response.data.accessToken, response.data.refreshToken);
-  return response.data;
+  try {
+    const response = await api.post<AuthResponse>('/auth/register', { ...input, timezone });
+    await saveSession(response.data.accessToken, response.data.refreshToken);
+    return response.data;
+  } catch (error) {
+    // Limpa sessão em caso de erro
+    await clearSession();
+    throw error;
+  }
 }
 
 export async function login(input: { email: string; password: string }) {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const response = await api.post<AuthResponse>('/auth/login', { ...input, timezone });
-  await saveSession(response.data.accessToken, response.data.refreshToken);
-  return response.data;
+  try {
+    const response = await api.post<AuthResponse>('/auth/login', { ...input, timezone });
+    await saveSession(response.data.accessToken, response.data.refreshToken);
+    return response.data;
+  } catch (error) {
+    // Limpa sessão em caso de erro
+    await clearSession();
+    throw error;
+  }
 }
 
 export async function signInWithApple() {
-  const AppleAuthentication = await import('expo-apple-authentication');
-  const credential = await AppleAuthentication.signInAsync({
-    requestedScopes: [
-      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-      AppleAuthentication.AppleAuthenticationScope.EMAIL,
-    ],
-  });
+  try {
+    const AppleAuthentication = await import('expo-apple-authentication');
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
 
-  if (!credential.identityToken) {
-    throw new Error('APPLE_IDENTITY_TOKEN_MISSING');
+    if (!credential.identityToken) {
+      throw new Error('APPLE_IDENTITY_TOKEN_MISSING');
+    }
+
+    const fullName = [credential.fullName?.givenName, credential.fullName?.familyName].filter(Boolean).join(' ');
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const response = await api.post<AuthResponse>('/auth/apple', {
+      identityToken: credential.identityToken,
+      email: credential.email ?? undefined,
+      name: fullName || undefined,
+      timezone,
+    });
+
+    await saveSession(response.data.accessToken, response.data.refreshToken);
+    return response.data;
+  } catch (error) {
+    console.error('[signInWithApple] Error:', error);
+    // Limpa sessão em caso de erro
+    await clearSession();
+    throw error;
   }
-
-  const fullName = [credential.fullName?.givenName, credential.fullName?.familyName].filter(Boolean).join(' ');
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const response = await api.post<AuthResponse>('/auth/apple', {
-    identityToken: credential.identityToken,
-    email: credential.email ?? undefined,
-    name: fullName || undefined,
-    timezone,
-  });
-
-  await saveSession(response.data.accessToken, response.data.refreshToken);
-  return response.data;
 }
 
 export async function bootstrapSession() {
@@ -57,7 +76,10 @@ export async function bootstrapSession() {
       accessToken: refreshedSession.accessToken ?? session.accessToken,
       refreshToken: refreshedSession.refreshToken ?? session.refreshToken ?? '',
     };
-  } catch {
+  } catch (error) {
+    console.error('[bootstrapSession] Error:', error);
+    // Limpa sessão inválida
+    await clearSession();
     return null;
   }
 }
@@ -65,6 +87,8 @@ export async function bootstrapSession() {
 export async function logout() {
   try {
     await api.post('/auth/logout');
+  } catch (error) {
+    console.error('[logout] Error:', error);
   } finally {
     await clearSession();
   }
