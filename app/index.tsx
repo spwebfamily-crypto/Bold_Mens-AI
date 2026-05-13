@@ -1,6 +1,6 @@
 import { ActivityIndicator, View } from 'react-native';
 import { Redirect } from 'expo-router';
-import { colors } from '@/constants/colors';
+import { Colors } from '@/constants/tokens';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function Index() {
@@ -8,8 +8,8 @@ export default function Index() {
 
   if (status === 'idle' || status === 'loading') {
     return (
-      <View className="flex-1 items-center justify-center bg-bmBlack">
-        <ActivityIndicator color={colors.gold} />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background }}>
+        <ActivityIndicator color={Colors.accent} />
       </View>
     );
   }
@@ -18,5 +18,6 @@ export default function Index() {
     return <Redirect href="/(tabs)" />;
   }
 
+  // status === 'anonymous' ou qualquer outro estado
   return <Redirect href="/onboarding" />;
 }

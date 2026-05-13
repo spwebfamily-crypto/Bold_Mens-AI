@@ -9,17 +9,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bmBlack: '#0A0A0A',
-        bmDark: '#171717',
-        bmMuted: '#262626',
-        bmGold: '#ff7a00',
-        bmGoldLight: '#ffd9b3',
-        bmOutline: '#ffd4aa',
-        bmWhite: '#ffffff',
-        bmDim: '#6b7280',
-        bmSuccess: '#22C55E',
-        bmError: '#EF4444',
-        bmWarning: '#F59E0B',
+        bmBlack: '#050505',
+        bmDark: '#121212',
+        bmMuted: '#2C2C2E',
+        bmGold: '#D4AF37',
+        bmGoldLight: '#E5C76B',
+        bmOutline: '#3A3A3C',
+        bmWhite: '#FFFFFF',
+        bmDim: '#9CA3AF',
+        bmSuccess: '#34C759',
+        bmError: '#FF3B30',
+        bmWarning: '#FF9500',
       },
       fontFamily: {
         sans: ['Poppins_400Regular', 'System'],

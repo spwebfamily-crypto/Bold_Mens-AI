@@ -18,10 +18,14 @@ export function useAuth() {
       if (session) {
         setAuth(session);
       } else {
+        await authService.logout().catch(() => {});
+        clearAuth();
         setStatus('anonymous');
       }
-    } catch {
+    } catch (error) {
+      console.error('[bootstrap] Error:', error);
       clearAuth();
+      setStatus('anonymous');
     }
   }, [clearAuth, setAuth, setStatus]);
 
@@ -70,7 +74,8 @@ export function useAuth() {
   const logout = useCallback(async () => {
     await authService.logout();
     clearAuth();
-  }, [clearAuth]);
+    setStatus('anonymous');
+  }, [clearAuth, setStatus]);
 
   return {
     user,
